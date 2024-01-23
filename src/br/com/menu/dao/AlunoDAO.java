@@ -30,8 +30,9 @@ public class AlunoDAO {
 			// chama a classe ConnectionFactory e estabele uma conexão
 			this.conn = ConnectionFactory.getConnection();
 		} catch (Exception e1) {
-			String errorMessage = "Erro na inserção de dados:\n" + e1.getMessage();
-			JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
+		    e1.printStackTrace();
+		    String errorMessage = "Erro na inserção de dados:\n" + e1.getMessage();
+		    JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
 		}
 
 	}
@@ -45,8 +46,13 @@ public class AlunoDAO {
 			// Código para inserção de valores na tabela TBALUNO do bd
 			// Cada interrogação corresponde a uma coluna da tabela
 			// sendo ordenada de acordo com a sua posição
-			String SQL = "INSERT INTO " + "tbaluno (rgm, " + "nome, cpf, endereco, uf, " + "municipio, celular,"
-					+ "dtaNascimento, " + "email) " + "values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String SQL = "INSERT INTO " 
+						+ "tbaluno (rgm, " 
+						+ "nome, cpf, endereco, uf, " 
+						+ "municipio, celular, "
+						+ "dtaNascimento, " 
+						+ "email) " 
+						+ "values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			// Permite a execução do código SQL
 			ps = conn.prepareStatement(SQL);
 			ps.setInt(1, aluno.getRgm());
@@ -63,7 +69,11 @@ public class AlunoDAO {
 
 			// Faz uma nova inserção no SQL para
 			// inserir os dados na tabela TBCURSO
-			String SQL2 = "INSERT INTO " + "tbcurso (rgm, curso, " + "campus, " + "periodo)" + "values (?, ?, ?, ?)";
+			String SQL2 = "INSERT INTO " 
+						+ "tbcurso (rgm, curso, " 
+						+ "campus, " 
+						+ "periodo) " 
+						+ "values (?, ?, ?, ?)";
 			ps = conn.prepareStatement(SQL2);
 			ps.setInt(1, curso.getRgm());
 			ps.setString(2, curso.getCurso());
@@ -73,8 +83,10 @@ public class AlunoDAO {
 			ps.executeUpdate();
 
 		} catch (Exception e1) {
+			e1.printStackTrace();
 			String errorMessage = "Erro na inserção de dados:\n" + e1.getMessage();
 			JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
+			
 		} finally {
 			ConnectionFactory.closeConnection(conn, ps);
 		}
@@ -86,8 +98,13 @@ public class AlunoDAO {
 			throw new Exception("O valor passado nao pode ser nulo");
 		try {
 			// Código para update de dados no bd
-			String SQL = "UPDATE " + "tbaluno SET " + "nome=?, cpf=?, endereco=?, uf=?, " + "municipio=?, celular=?,"
-					+ "dtaNascimento=?, " + "email=? " + "WHERE rgm=?";
+			String SQL = "UPDATE " 
+					+ "tbaluno SET " 
+					+ "nome=?, cpf=?, endereco=?, uf=?, " 
+					+ "municipio=?, celular=?,"
+					+ "dtaNascimento=?, " 
+					+ "email=? " 
+					+ "WHERE rgm=?";
 			ps = conn.prepareStatement(SQL);
 			ps.setString(1, aluno.getNome());
 			ps.setString(2, aluno.getCpf());
@@ -103,7 +120,12 @@ public class AlunoDAO {
 
 			// Faz uma nova inserção no SQL para
 			// inserir os dados na tabela TBCURSO
-			String SQL2 = "UPDATE " + "tbcurso SET " + "curso=?, " + "campus=?, " + "periodo=? " + "WHERE rgm=?";
+			String SQL2 = "UPDATE " 
+					+ "tbcurso SET " 
+					+ "curso=?, " 
+					+ "campus=?, " 
+					+ "periodo=? " 
+					+ "WHERE rgm=?";
 			ps = conn.prepareStatement(SQL2);
 			ps.setString(1, curso.getCurso());
 			ps.setString(2, curso.getCampus());

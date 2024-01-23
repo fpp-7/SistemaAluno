@@ -378,8 +378,9 @@ public class TelaPrincipal extends JFrame {
 					AlunoDAO dao = new AlunoDAO();
 					// salvar
 					dao.salvar(aluno, curso, nota);
-					JOptionPane.showMessageDialog(null, "Salvo com Sucesso");
+					JOptionPane.showMessageDialog(null, "Salvo com Sucesso1");
 				} catch (Exception e1) {
+					e1.printStackTrace();
 					String errorMessage = "Erro na inserção de dados:\n" + e1.getMessage();
 					JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
 				}

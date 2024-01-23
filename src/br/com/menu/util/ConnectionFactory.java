@@ -14,10 +14,11 @@ public class ConnectionFactory {
 			//Conexão com o DB.
 			String login = "root"; //Login do DB
 			String senha = "";  //Senha do DB em branco, para facilitar o acesso
-			String url = "jdbc:mysql://localhost/dbuniversidade";  //Acrescenta o conjunto de caracteres a URL de conexão
+			String url = "jdbc:mysql://localhost/dbuniversidade?characterEncoding=UTF-8";  //Acrescenta o conjunto de caracteres a URL de conexão
 			return DriverManager.getConnection(url,login,senha);  //aponta o Driver para a Url utilizando o login e a senha informados.
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new Exception("Erro na conexão");  //Apresenta o Erro caso haja algum problema na conexão do banco de dados
 		}
 	}
@@ -48,6 +49,7 @@ public class ConnectionFactory {
 			if (conn != null)
 				conn.close();
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new Exception();
 		}
 	}
