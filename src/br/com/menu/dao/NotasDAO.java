@@ -15,10 +15,12 @@ import br.com.menu.util.ConnectionFactory;
 
 
 public class NotasDAO {
-	
-	private Connection conn; //Abre conexão
-	private PreparedStatement ps;  //Permite Ações no DB
-	private ResultSet rs;  //Cria tabela
+	//Abre conexão
+	private Connection conn; 
+	//Permite Ações no DB
+	private PreparedStatement ps;  
+	//Cria tabela
+	private ResultSet rs;  
 	private Aluno alunoConsulta;
 	private Curso cursoConsulta;
 	
