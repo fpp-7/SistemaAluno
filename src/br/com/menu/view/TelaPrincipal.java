@@ -40,6 +40,10 @@ import br.com.menu.model.Notas;
 
 public class TelaPrincipal extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTabbedPane tabbedPane;
 	private JPanel jpDadosPessoais;
@@ -100,6 +104,7 @@ public class TelaPrincipal extends JFrame {
 	private final ButtonGroup grupoPeriodo = new ButtonGroup();
 	private JComboBox<?> comboBoxCampus;
 	private JComboBox<?> comboBoxCurso;
+	@SuppressWarnings("unused")
 	private Object objectUf;
 	private Aluno aluno;
 	private Curso curso;
@@ -142,6 +147,7 @@ public class TelaPrincipal extends JFrame {
 	/**
 	 * Create the frame.
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public TelaPrincipal() throws Exception {
 		setTitle("Sistema de Alunos");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
