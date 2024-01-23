@@ -18,7 +18,7 @@ public class ConnectionFactory {
 			return DriverManager.getConnection(url,login,senha);  //aponta o Driver para a Url utilizando o login e a senha informados.
 		}
 		catch (Exception e) {
-			throw new Exception("Erro no banco de dados");  //Apresenta o Erro caso haja algum problema na conexão do banco de dados
+			throw new Exception("Erro na conexão");  //Apresenta o Erro caso haja algum problema na conexão do banco de dados
 		}
 	}
 
