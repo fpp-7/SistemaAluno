@@ -149,6 +149,7 @@ public class TelaPrincipal extends JFrame {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public TelaPrincipal() throws Exception {
+		setType(Type.UTILITY);
 		setTitle("Sistema de Alunos");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 680, 376);
@@ -159,7 +160,7 @@ public class TelaPrincipal extends JFrame {
 		contentPane.setLayout(null);
 
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(10, 33, 654, 304);
+		tabbedPane.setBounds(0, 33, 664, 304);
 		contentPane.add(tabbedPane);
 
 		MaskFormatter maskDtaNascimento = new MaskFormatter("##/##/####");
