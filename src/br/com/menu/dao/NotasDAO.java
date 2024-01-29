@@ -23,7 +23,6 @@ public class NotasDAO {
 	private ResultSet rs;  
 	private Aluno alunoConsulta;
 	private Curso cursoConsulta;
-	
 	private String unescape(String value) {
 	    return value.replace("''", "'");
 	}

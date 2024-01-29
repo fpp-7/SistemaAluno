@@ -884,7 +884,7 @@ public class TelaPrincipal extends JFrame {
 		jpNotaseFaltas.add(btNExcluir);
 
 		jpBoletim = new JPanel();
-		tabbedPane.addTab("Boletim", null, jpBoletim, null);
+		tabbedPane.addTab("BoletimController", null, jpBoletim, null);
 		jpBoletim.setLayout(null);
 
 		txtBoletim = new TextArea();
@@ -1271,7 +1271,7 @@ public class TelaPrincipal extends JFrame {
 				String[] instrucoes = { "Passo 1: Cadastre os dados pessoais do aluno.",
 						"Passo 2: Insira o rgm na aba Notas e faltas e Consulte.",
 						"Passo 3: Selecione a disciplina, o semestre, a nota e a falta do aluno e salve em seguida.",
-						"Passo 4: Na aba Boletim, é possivel verificar todas as notas cadastradas utilizando o rgm na pesquisa." };
+						"Passo 4: Na aba BoletimController, é possivel verificar todas as notas cadastradas utilizando o rgm na pesquisa." };
 				int i = 0;
 				int resposta = JOptionPane.YES_OPTION;
 				while (i < instrucoes.length && resposta == JOptionPane.YES_OPTION) {

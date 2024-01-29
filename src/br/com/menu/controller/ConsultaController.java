@@ -1,5 +1,5 @@
 package br.com.menu.controller;
 
-public class Boletim {
+public class ConsultaController {
 
 }

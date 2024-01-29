@@ -4,18 +4,18 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 
-public class CadastroAlunoView extends JFrame{
+public class ConsultaView extends JFrame{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public void cadAluView() {
+	public void consView() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					CadastroAlunoView frame = new CadastroAlunoView();
+					ConsultaView frame = new ConsultaView();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
