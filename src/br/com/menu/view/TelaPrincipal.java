@@ -3,7 +3,6 @@ package br.com.menu.view;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -25,11 +24,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.text.MaskFormatter;
 
 import br.com.menu.dao.AlunoDAO;
@@ -37,12 +40,10 @@ import br.com.menu.dao.NotasDAO;
 import br.com.menu.model.Aluno;
 import br.com.menu.model.Curso;
 import br.com.menu.model.Notas;
+import br.com.menu.util.ConnectionFactory;
 
 public class TelaPrincipal extends JFrame {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTabbedPane tabbedPane;
@@ -50,13 +51,15 @@ public class TelaPrincipal extends JFrame {
 	private JPanel jpCurso;
 	private JPanel jpNotaseFaltas;
 	private JPanel jpBoletim;
+	
 	private JFormattedTextField txtDtaNascimento;
 	private JFormattedTextField txtCpf;
 	private JFormattedTextField txtEmail;
 	private JFormattedTextField txtEnd;
 	private JFormattedTextField txtMunicipio;
-	private JComboBox<?> comboBoxUf;
+	private JComboBox<String> comboBoxUf;
 	private JFormattedTextField txtCelular;
+	
 	private JLabel lblRgm;
 	private JLabel lblDtaNascimento;
 	private JLabel lblNome;
@@ -66,12 +69,15 @@ public class TelaPrincipal extends JFrame {
 	private JLabel lblMunicipio;
 	private JLabel lblUf;
 	private JLabel lblCelular;
+	
 	private JFormattedTextField txtNome;
 	private JFormattedTextField txtRgm;
+	
 	private JMenuBar menuBar;
 	private JMenu menualuno;
 	private JMenu menunotafalta;
 	private JMenu menuajuda;
+	
 	private JMenuItem mntmConsultar;
 	private JMenuItem mntmSalvar;
 	private JMenuItem mntmAlterar;
@@ -82,55 +88,65 @@ public class TelaPrincipal extends JFrame {
 	private JMenuItem mntmNFExcluir;
 	private JMenuItem mntmNFConsultar;
 	private JMenuItem mntmSobre;
+	
 	private JLabel lblCurso;
 	private JLabel lblCampus;
 	private JLabel lblPeriodo;
 	private JRadioButton rdbtnMatutino;
 	private JRadioButton rdbtnVespertino;
 	private JRadioButton rdbtnNoturno;
+	
 	private JLabel lblNFRgm;
 	private JTextField txtNFRgm;
 	private JTextField txtNFNome;
 	private JLabel lblNFDisciplina;
 	private JLabel lblNFSemestre;
-	private JComboBox<?> comboBoxSemestre;
-	private JComboBox<?> comboBoxDisciplina;
-	private JComboBox<?> comboBoxNota;
+	private JComboBox<String> comboBoxSemestre;
+	private JComboBox<String> comboBoxDisciplina;
+	private JComboBox<String> comboBoxNota;
 	private JLabel lblNFNota;
 	private JLabel lblNFFalta;
 	private JTextField txtNFFalta;
-	private TextArea txtBoletim;
+	private JTextArea txtBoletim;
 	private JTextField txtNFCurso;
 	private final ButtonGroup grupoPeriodo = new ButtonGroup();
-	private JComboBox<?> comboBoxCampus;
-	private JComboBox<?> comboBoxCurso;
-	@SuppressWarnings("unused")
-	private Object objectUf;
+	private JComboBox<String> comboBoxCampus;
+	private JComboBox<String> comboBoxCurso;
+	
 	private Aluno aluno;
 	private Curso curso;
 	private JLabel lblNewLabel;
 	private JTextField txtBRgm;
 	private JButton btBConsulta;
 	private JButton btBLimpa;
+	
 	private JButton btDPSair;
 	private JButton btDPconsultar;
 	private JButton btDPSalvar;
 	private JButton btDPAlterar;
 	private JButton btDPExcluir;
+	
 	private JButton btCSair;
 	private JButton btCConsultar;
 	private JButton btCSalvar;
 	private JButton btCAlterar;
 	private JButton btCExcluir;
+	
 	private JButton btNSair;
 	private JButton btNConsultar;
 	private JButton btNSalvar;
 	private JButton btNAlterar;
 	private JButton btNExcluir;
 
-	/**
-	 * Launch the application.
-	 */
+	// Cores do Design System Premium
+	private static final Color COLOR_BG = new Color(243, 244, 246); // Fundo cinza ultra-claro
+	private static final Color COLOR_PANEL = new Color(249, 250, 251); // Fundo do painel
+	private static final Color COLOR_PRIMARY = new Color(79, 70, 229); // Roxo moderno
+	private static final Color COLOR_ACCENT = new Color(13, 148, 136); // Teal elegante
+	private static final Color COLOR_DANGER = new Color(225, 29, 72); // Vermelho vibrante
+	private static final Color COLOR_TEXT_MAIN = new Color(31, 41, 55); // Cinza grafite escuro
+	private static final Color COLOR_TEXT_LABEL = new Color(75, 85, 99); // Cinza label
+
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -144,1147 +160,1094 @@ public class TelaPrincipal extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public TelaPrincipal() throws Exception {
 		setType(Type.UTILITY);
 		setTitle("Sistema de Alunos");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 680, 376);
+		setBounds(100, 100, 780, 540); // Espaço maior e mais harmonioso
+		setLocationRelativeTo(null); // Centraliza na tela
+		
 		contentPane = new JPanel();
+		contentPane.setBackground(COLOR_BG);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
-		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(0, 33, 664, 304);
-		contentPane.add(tabbedPane);
-
-		MaskFormatter maskDtaNascimento = new MaskFormatter("##/##/####");
-
-		MaskFormatter maskCpf = new MaskFormatter("###.###.###-##");
-
-		MaskFormatter maskCelular = new MaskFormatter("(##)#########");
-
-		jpDadosPessoais = new JPanel();
-		tabbedPane.addTab("Dados Pessoais", null, jpDadosPessoais, null);
-		jpDadosPessoais.setLayout(null);
-		txtDtaNascimento = new JFormattedTextField(maskDtaNascimento);
-		txtDtaNascimento.setBounds(163, 63, 126, 25);
-		txtDtaNascimento.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtDtaNascimento);
-		txtCpf = new JFormattedTextField(maskCpf);
-		txtCpf.setBounds(424, 63, 205, 25);
-		txtCpf.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtCpf);
-
-		txtEmail = new JFormattedTextField();
-		txtEmail.setBounds(63, 93, 566, 25);
-		txtEmail.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtEmail);
-
-		txtEnd = new JFormattedTextField();
-		txtEnd.setBounds(63, 123, 566, 25);
-		txtEnd.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtEnd);
-
-		txtMunicipio = new JFormattedTextField();
-		txtMunicipio.setBounds(73, 153, 114, 25);
-		txtMunicipio.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtMunicipio);
-
-		comboBoxUf = new JComboBox();
-		comboBoxUf.setBounds(259, 153, 46, 25);
-		comboBoxUf.setModel(new DefaultComboBoxModel(
-				new String[] { "--", "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB",
-						"PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" }));
-		comboBoxUf.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(comboBoxUf);
-		txtCelular = new JFormattedTextField(maskCelular);
-		txtCelular.setBounds(371, 153, 258, 25);
-		txtCelular.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtCelular);
-
-		lblRgm = new JLabel("RGM");
-		lblRgm.setBounds(11, 33, 56, 25);
-		lblRgm.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblRgm);
-
-		lblDtaNascimento = new JLabel("Data de Nascimento ");
-		lblDtaNascimento.setBounds(11, 63, 155, 25);
-		lblDtaNascimento.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblDtaNascimento);
-
-		lblNome = new JLabel("Nome");
-		lblNome.setBounds(230, 33, 46, 25);
-		lblNome.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblNome);
-
-		lblCpf = new JLabel("CPF");
-		lblCpf.setBounds(368, 63, 46, 25);
-		lblCpf.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblCpf);
-
-		lblEmail = new JLabel("Email");
-		lblEmail.setBounds(11, 93, 46, 25);
-		lblEmail.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblEmail);
-
-		lblEnd = new JLabel("End");
-		lblEnd.setBounds(11, 123, 35, 25);
-		lblEnd.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblEnd);
-
-		lblMunicipio = new JLabel("Município");
-		lblMunicipio.setBounds(10, 153, 67, 25);
-		lblMunicipio.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblMunicipio);
-
-		lblUf = new JLabel("UF");
-		lblUf.setBounds(219, 153, 30, 25);
-		lblUf.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblUf);
-
-		lblCelular = new JLabel("Celular");
-		lblCelular.setBounds(315, 153, 46, 25);
-		lblCelular.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(lblCelular);
-
-		txtNome = new JFormattedTextField();
-		txtNome.setBounds(286, 33, 343, 25);
-		txtNome.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtNome);
-
-		txtRgm = new JFormattedTextField();
-		txtRgm.setBounds(65, 33, 114, 25);
-		txtRgm.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		jpDadosPessoais.add(txtRgm);
-
-		btDPSair = new JButton("");
-		btDPSair.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				// Fecha a janela quando o botão "SAIR" é clicado
-				System.exit(0);
-			}
-		});
-		btDPSair.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-off-59.png")));
-		btDPSair.setBounds(123, 200, 70, 65);
-		jpDadosPessoais.add(btDPSair);
-
-		btDPconsultar = new JButton("");
-		btDPconsultar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-
-					AlunoDAO dao = new AlunoDAO();
-					int rgm = Integer.parseInt(txtRgm.getText());
-					// Chama o método ConsultarAluno da classe DAO com o Parametro RGM
-					aluno = dao.consultarAluno(rgm);
-					txtNome.setText(aluno.getNome());
-					txtCpf.setValue(maskCpf.valueToString(aluno.getCpf()));
-					txtEnd.setText(aluno.getEndereco());
-					txtDtaNascimento.setValue(maskDtaNascimento.valueToString(aluno.getDtaNascimento()));
-					// Armazena o valor retornado pelo DB
-					String ufSelect = aluno.getUF();
-					// Laço for para verificar a posição do item retornado pelo DB
-					for (int i = 0; i < comboBoxUf.getItemCount(); i++) {
-						Object item = comboBoxUf.getItemAt(i);
-						// Quando o item retornado pelo DB for igual ao item do comboBox, o item é
-						// selecionado
-						if (item.toString().equals(ufSelect)) {
-							comboBoxUf.setSelectedItem(item);
-							break;
-						}
-					}
-
-					txtMunicipio.setValue(aluno.getMunicipio());
-					txtCelular.setValue(maskCelular.valueToString(aluno.getCelular()));
-					txtDtaNascimento.setValue(maskDtaNascimento.valueToString(aluno.getDtaNascimento()));
-					txtEmail.setValue(aluno.getEmail());
-
-					dao = new AlunoDAO();
-					curso = dao.consultarCurso(rgm);
-
-					String cursoSelect = curso.getCurso(); // Armazena o valor retornado pelo DB
-					for (int i = 0; i < comboBoxCurso.getItemCount(); i++) { // Laço for para verificar a posição do
-																				// item retornado pelo DB
-						Object item = comboBoxCurso.getItemAt(i);
-						if (item.toString().equals(cursoSelect)) { // Quando o item retornado pelo DB for igual ao item
-																	// do comboBox, o item é selecionado
-							comboBoxCurso.setSelectedItem(item); // Se o item for encontrado, selecione-o
-							break;
-						}
-					}
-
-					String campusSelect = curso.getCampus();
-					for (int i = 0; i < comboBoxCampus.getItemCount(); i++) {
-						Object item = comboBoxCampus.getItemAt(i);
-						if (item.toString().equals(campusSelect)) {
-							comboBoxCampus.setSelectedItem(item);
-							break;
-						}
-					}
-
-					if (curso.getPeriodo().equals("Matutino")) {
-						grupoPeriodo.setSelected(rdbtnMatutino.getModel(), true);
-					} else if (curso.getPeriodo().equals("Vespertino")) {
-						grupoPeriodo.setSelected(rdbtnVespertino.getModel(), true); // Condições para selecionar o Rádio
-																					// correspondente ao BD
-					} else if (curso.getPeriodo().equals("Noturno")) {
-						grupoPeriodo.setSelected(rdbtnNoturno.getModel(), true);
-					}
-
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, "Erro ao consultar");
-				}
-			}
-		});
-		btDPconsultar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-search-60.png")));
-		btDPconsultar.setBounds(363, 200, 70, 65);
-		jpDadosPessoais.add(btDPconsultar);
-
-		btDPSalvar = new JButton("");
-		btDPSalvar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Aluno aluno = new Aluno();
-					Curso curso = new Curso();
-					Notas nota = new Notas();
-					// popular o meu objeto
-					aluno.setRgm(Integer.parseInt(txtRgm.getText()));
-					curso.setRgm(Integer.parseInt(txtRgm.getText()));
-					aluno.setNome(txtNome.getText());
-					aluno.setEmail(txtEmail.getText());
-					aluno.setDtaNascimento(txtDtaNascimento.getText());
-					aluno.setEndereco(txtEnd.getText());
-					aluno.setCpf(txtCpf.getText());
-					aluno.setUF(comboBoxUf.getSelectedItem().toString());
-					aluno.setMunicipio(txtMunicipio.getText());
-					aluno.setCelular(txtCelular.getText());
-					curso.setCampus(comboBoxCampus.getSelectedItem().toString());
-					curso.setCurso(comboBoxCurso.getSelectedItem().toString());
-					// Salva o valor do periodo de acordo com a escolha
-					if (rdbtnMatutino.isSelected()) {
-						curso.setPeriodo("Matutino");
-					} else if (rdbtnVespertino.isSelected()) {
-						curso.setPeriodo("Vespertino");
-					} else if (rdbtnNoturno.isSelected()) {
-						curso.setPeriodo("Noturno");
-					}
-
-					// abrir o BD
-					AlunoDAO dao = new AlunoDAO();
-					// salvar
-					dao.salvar(aluno, curso, nota);
-					JOptionPane.showMessageDialog(null, "Salvo com Sucesso1");
-				} catch (Exception e1) {
-					e1.printStackTrace();
-					String errorMessage = "Erro na inserção de dados:\n" + e1.getMessage();
-					JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
-				}
-
-			}
-		});
-		btDPSalvar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-save-all-60.png")));
-		btDPSalvar.setBounds(203, 200, 70, 65);
-		jpDadosPessoais.add(btDPSalvar);
-
-		btDPAlterar = new JButton("");
-		btDPAlterar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Aluno aluno = new Aluno();
-					Curso curso = new Curso();
-					aluno.setRgm(Integer.parseInt(txtRgm.getText()));
-					curso.setRgm(Integer.parseInt(txtRgm.getText()));
-					aluno.setNome(txtNome.getText());
-					aluno.setEmail(txtEmail.getText());
-					aluno.setDtaNascimento(txtDtaNascimento.getText());
-					aluno.setEndereco(txtEnd.getText()); // popular o meu objeto
-					aluno.setCpf(txtCpf.getText());
-					aluno.setUF(comboBoxUf.getSelectedItem().toString());
-					aluno.setMunicipio(txtMunicipio.getText());
-					aluno.setCelular(txtCelular.getText());
-					curso.setCampus(comboBoxCampus.getSelectedItem().toString());
-					curso.setCurso(comboBoxCurso.getSelectedItem().toString());
-					if (rdbtnMatutino.isSelected()) {
-						curso.setPeriodo("Matutino");
-					} else if (rdbtnVespertino.isSelected()) {
-						curso.setPeriodo("Vespertino");
-					} else if (rdbtnNoturno.isSelected()) {
-						curso.setPeriodo("Noturno");
-					}
-					AlunoDAO dao = new AlunoDAO(); // abrir o BD
-					dao.atualizar(aluno, curso);
-					JOptionPane.showMessageDialog(null, "Atualizado com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, "Erro ao atualizar");
-				}
-			}
-		});
-		btDPAlterar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-edit-60.png")));
-		btDPAlterar.setBounds(283, 200, 70, 65);
-		jpDadosPessoais.add(btDPAlterar);
-
-		btDPExcluir = new JButton("");
-		btDPExcluir.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					AlunoDAO dao = new AlunoDAO();
-					int rgm = Integer.parseInt(txtRgm.getText()); // Remover dados dos campos
-					dao.excluir(rgm); // Chama o método Excluir
-					JOptionPane.showMessageDialog(null, "Excluido com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, "Erro ao excluir");
-				}
-			}
-		});
-		btDPExcluir.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-delete-60.png")));
-		btDPExcluir.setBounds(443, 200, 70, 65);
-		jpDadosPessoais.add(btDPExcluir);
-
-		jpCurso = new JPanel();
-		tabbedPane.addTab("Curso", null, jpCurso, null);
-		jpCurso.setLayout(null);
-
-		lblCurso = new JLabel("Curso");
-		lblCurso.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblCurso.setBounds(10, 37, 56, 25);
-		jpCurso.add(lblCurso);
-
-		lblCampus = new JLabel("Campus");
-		lblCampus.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblCampus.setBounds(10, 77, 56, 25);
-		jpCurso.add(lblCampus);
-
-		lblPeriodo = new JLabel("Período");
-		lblPeriodo.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblPeriodo.setBounds(10, 117, 56, 25);
-		jpCurso.add(lblPeriodo);
-
-		rdbtnMatutino = new JRadioButton("Matutino");
-		grupoPeriodo.add(rdbtnMatutino); // Acrescenta o RADIO ao grupo para haver a interação com os outros RADIOS
-		rdbtnMatutino.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		rdbtnMatutino.setBounds(72, 120, 90, 23);
-		jpCurso.add(rdbtnMatutino);
-
-		rdbtnVespertino = new JRadioButton("Vespertino");
-		grupoPeriodo.add(rdbtnVespertino); // Acrescenta o RADIO ao grupo para haver a interação com os outros RADIOS
-		rdbtnVespertino.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		rdbtnVespertino.setBounds(165, 120, 101, 23);
-		jpCurso.add(rdbtnVespertino);
-
-		rdbtnNoturno = new JRadioButton("Noturno");
-		grupoPeriodo.add(rdbtnNoturno); // Acrescenta o RADIO ao grupo para haver a interação com os outros RADIOS
-		rdbtnNoturno.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		rdbtnNoturno.setBounds(275, 120, 90, 23);
-		jpCurso.add(rdbtnNoturno);
-
-		comboBoxCampus = new JComboBox();
-		comboBoxCampus.setModel(
-				new DefaultComboBoxModel(new String[] { "--", "Unicid - Carrão", "Unicid - Cid. Universitaria" }));
-		comboBoxCampus.setBounds(76, 80, 323, 22);
-		jpCurso.add(comboBoxCampus);
-
-		comboBoxCurso = new JComboBox();
-		comboBoxCurso.setModel(
-				new DefaultComboBoxModel(new String[] { "--", "Ciencia da Computação", "Medicina", "Direito" }));
-		comboBoxCurso.setBounds(76, 40, 323, 22);
-		jpCurso.add(comboBoxCurso);
-
-		btCSair = new JButton("");
-		btCSair.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0); // Fecha a janela quando o botão "SAIR" é clicado
-			}
-		});
-		btCSair.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-off-59.png")));
-		btCSair.setBounds(123, 200, 70, 65);
-		jpCurso.add(btCSair);
-
-		btCConsultar = new JButton("");
-		btCConsultar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-
-					AlunoDAO dao = new AlunoDAO();
-					int rgm = Integer.parseInt(txtRgm.getText());
-					// Chama o método ConsultarAluno da classe DAO com o Parametro RGM
-					aluno = dao.consultarAluno(rgm);
-					txtNome.setText(aluno.getNome());
-					txtCpf.setValue(maskCpf.valueToString(aluno.getCpf()));
-					txtEnd.setText(aluno.getEndereco());
-					txtDtaNascimento.setValue(maskDtaNascimento.valueToString(aluno.getDtaNascimento()));
-					// Armazena o valor retornado pelo DB
-					String ufSelect = aluno.getUF();
-					// Laço for para verificar a posição do item retornado pelo DB
-					for (int i = 0; i < comboBoxUf.getItemCount(); i++) {
-						Object item = comboBoxUf.getItemAt(i);
-						// Quando o item retornado pelo DB for igual ao item do comboBox, o item é
-						// selecionado
-						if (item.toString().equals(ufSelect)) {
-							comboBoxUf.setSelectedItem(item);
-							break;
-						}
-					}
-
-					txtMunicipio.setValue(aluno.getMunicipio());
-					txtCelular.setValue(maskCelular.valueToString(aluno.getCelular()));
-					txtDtaNascimento.setValue(maskDtaNascimento.valueToString(aluno.getDtaNascimento()));
-					txtEmail.setValue(aluno.getEmail());
-
-					dao = new AlunoDAO();
-					curso = dao.consultarCurso(rgm);
-
-					String cursoSelect = curso.getCurso(); // Armazena o valor retornado pelo DB
-					for (int i = 0; i < comboBoxCurso.getItemCount(); i++) { // Laço for para verificar a posição do
-																				// item retornado pelo DB
-						Object item = comboBoxCurso.getItemAt(i);
-						if (item.toString().equals(cursoSelect)) { // Quando o item retornado pelo DB for igual ao item
-																	// do comboBox, o item é selecionado
-							comboBoxCurso.setSelectedItem(item); // Se o item for encontrado, selecione-o
-							break;
-						}
-					}
-
-					String campusSelect = curso.getCampus();
-					for (int i = 0; i < comboBoxCampus.getItemCount(); i++) {
-						Object item = comboBoxCampus.getItemAt(i);
-						if (item.toString().equals(campusSelect)) {
-							comboBoxCampus.setSelectedItem(item);
-							break;
-						}
-					}
-
-					if (curso.getPeriodo().equals("Matutino")) {
-						grupoPeriodo.setSelected(rdbtnMatutino.getModel(), true);
-					} else if (curso.getPeriodo().equals("Vespertino")) {
-						grupoPeriodo.setSelected(rdbtnVespertino.getModel(), true); // Condições para selecionar o Rádio
-																					// correspondente ao BD
-					} else if (curso.getPeriodo().equals("Noturno")) {
-						grupoPeriodo.setSelected(rdbtnNoturno.getModel(), true);
-					}
-
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, e1.getMessage());
-				}
-			}
-		});
-		btCConsultar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-search-60.png")));
-		btCConsultar.setBounds(363, 200, 70, 65);
-		jpCurso.add(btCConsultar);
-
-		btCSalvar = new JButton("");
-		btCSalvar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Aluno aluno = new Aluno();
-					Curso curso = new Curso();
-					Notas nota = new Notas();
-					// popular o meu objeto
-					aluno.setRgm(Integer.parseInt(txtRgm.getText()));
-					curso.setRgm(Integer.parseInt(txtRgm.getText()));
-					aluno.setNome(txtNome.getText());
-					aluno.setEmail(txtEmail.getText());
-					aluno.setDtaNascimento(txtDtaNascimento.getText());
-					aluno.setEndereco(txtEnd.getText());
-					aluno.setCpf(txtCpf.getText());
-					aluno.setUF(comboBoxUf.getSelectedItem().toString());
-					aluno.setMunicipio(txtMunicipio.getText());
-					aluno.setCelular(txtCelular.getText());
-					curso.setCampus(comboBoxCampus.getSelectedItem().toString());
-					curso.setCurso(comboBoxCurso.getSelectedItem().toString());
-					// Salva o valor do periodo de acordo com a escolha
-					if (rdbtnMatutino.isSelected()) {
-						curso.setPeriodo("Matutino");
-					} else if (rdbtnVespertino.isSelected()) {
-						curso.setPeriodo("Vespertino");
-					} else if (rdbtnNoturno.isSelected()) {
-						curso.setPeriodo("Noturno");
-					}
-
-					// abrir o BD
-					AlunoDAO dao = new AlunoDAO();
-					// salvar
-					dao.salvar(aluno, curso, nota);
-					JOptionPane.showMessageDialog(null, "Salvo com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null,
-							"Erro na inserção de dados, verifique os dados se estão preenchidos corretamente");
-				}
-			}
-		});
-		btCSalvar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-save-all-60.png")));
-		btCSalvar.setBounds(203, 200, 70, 65);
-		jpCurso.add(btCSalvar);
-
-		btCAlterar = new JButton("");
-		btCAlterar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Aluno aluno = new Aluno();
-					Curso curso = new Curso();
-					aluno.setRgm(Integer.parseInt(txtRgm.getText()));
-					curso.setRgm(Integer.parseInt(txtRgm.getText()));
-					aluno.setNome(txtNome.getText());
-					aluno.setEmail(txtEmail.getText());
-					aluno.setDtaNascimento(txtDtaNascimento.getText());
-					aluno.setEndereco(txtEnd.getText()); // popular o meu objeto
-					aluno.setCpf(txtCpf.getText());
-					aluno.setUF(comboBoxUf.getSelectedItem().toString());
-					aluno.setMunicipio(txtMunicipio.getText());
-					aluno.setCelular(txtCelular.getText());
-					curso.setCampus(comboBoxCampus.getSelectedItem().toString());
-					curso.setCurso(comboBoxCurso.getSelectedItem().toString());
-					if (rdbtnMatutino.isSelected()) {
-						curso.setPeriodo("Matutino");
-					} else if (rdbtnVespertino.isSelected()) {
-						curso.setPeriodo("Vespertino");
-					} else if (rdbtnNoturno.isSelected()) {
-						curso.setPeriodo("Noturno");
-					}
-					AlunoDAO dao = new AlunoDAO(); // abrir o BD
-					dao.atualizar(aluno, curso);
-					JOptionPane.showMessageDialog(null, "Atualizado com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null,
-							"Erro ao atualizar, verifique se os dados estão inseridos corretamente ou verifique se o banco de dados esá conectado");
-				}
-			}
-		});
-		btCAlterar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-edit-60.png")));
-		btCAlterar.setBounds(283, 200, 70, 65);
-		jpCurso.add(btCAlterar);
-
-		btCExcluir = new JButton("");
-		btCExcluir.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					AlunoDAO dao = new AlunoDAO();
-					int rgm = Integer.parseInt(txtRgm.getText()); // Remover dados dos campos
-					dao.excluir(rgm); // Chama o método Excluir
-					JOptionPane.showMessageDialog(null, "Excluido com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null,
-							"Erro ao excluir, verifique se o banco de dados está conectado");
-				}
-			}
-		});
-		btCExcluir.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-delete-60.png")));
-		btCExcluir.setBounds(443, 200, 70, 65);
-		jpCurso.add(btCExcluir);
-
-		jpNotaseFaltas = new JPanel();
-		tabbedPane.addTab("Notas e Faltas", null, jpNotaseFaltas, null);
-		jpNotaseFaltas.setLayout(null);
-
-		lblNFRgm = new JLabel("RGM");
-		lblNFRgm.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblNFRgm.setBounds(10, 31, 56, 20);
-		jpNotaseFaltas.add(lblNFRgm);
-
-		txtNFRgm = new JTextField();
-		txtNFRgm.setBounds(53, 31, 96, 20);
-		jpNotaseFaltas.add(txtNFRgm);
-		txtNFRgm.setColumns(10);
-
-		txtNFNome = new JTextField();
-		txtNFNome.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		txtNFNome.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		txtNFNome.setEditable(false);
-		txtNFNome.setBounds(174, 31, 225, 20);
-		jpNotaseFaltas.add(txtNFNome);
-		txtNFNome.setColumns(10);
-
-		lblNFDisciplina = new JLabel("Disciplina");
-		lblNFDisciplina.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblNFDisciplina.setBounds(10, 104, 68, 20);
-		jpNotaseFaltas.add(lblNFDisciplina);
-
-		lblNFSemestre = new JLabel("Semestre");
-		lblNFSemestre.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblNFSemestre.setBounds(10, 135, 68, 20);
-		jpNotaseFaltas.add(lblNFSemestre);
-
-		comboBoxSemestre = new JComboBox();
-		comboBoxSemestre
-				.setModel(new DefaultComboBoxModel(new String[] { "--", "1.2022", "2.2022", "1.2023", "2.2023" }));
-		comboBoxSemestre.setBounds(87, 135, 84, 22);
-		jpNotaseFaltas.add(comboBoxSemestre);
-
-		comboBoxDisciplina = new JComboBox();
-		comboBoxDisciplina.setBounds(88, 104, 311, 22);
-		jpNotaseFaltas.add(comboBoxDisciplina);
-
-		comboBoxNota = new JComboBox();
-		comboBoxNota.setModel(new DefaultComboBoxModel(new String[] { "--", "0,5", "1,0", "1,5", "2,0", "2,5", "3,0",
-				"3,5", "4,0", "4,5", "5,0", "5,5", "6,0", "6,5", "7,0", "7,5", "8,0", "8,5", "9,0", "9,5", "10" }));
-		comboBoxNota.setBounds(231, 136, 62, 22);
-		jpNotaseFaltas.add(comboBoxNota);
-
-		lblNFNota = new JLabel("Nota");
-		lblNFNota.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblNFNota.setBounds(181, 137, 56, 20);
-		jpNotaseFaltas.add(lblNFNota);
-
-		lblNFFalta = new JLabel("Faltas");
-		lblNFFalta.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblNFFalta.setBounds(303, 137, 56, 20);
-		jpNotaseFaltas.add(lblNFFalta);
-
-		txtNFFalta = new JTextField();
-		txtNFFalta.setBounds(350, 137, 49, 20);
-		jpNotaseFaltas.add(txtNFFalta);
-		txtNFFalta.setColumns(10);
-
-		txtNFCurso = new JTextField();
-		txtNFCurso.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		txtNFCurso.setEditable(false);
-		txtNFCurso.setColumns(10);
-		txtNFCurso.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		txtNFCurso.setBounds(10, 67, 389, 26);
-		jpNotaseFaltas.add(txtNFCurso);
-
-		btNSair = new JButton("");
-		btNSair.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0); // Fecha a janela quando o botão "SAIR" é clicado
-			}
-		});
-		btNSair.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-off-59.png")));
-		btNSair.setBounds(129, 200, 70, 65);
-		jpNotaseFaltas.add(btNSair);
-
-		btNConsultar = new JButton("");
-		btNConsultar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					NotasDAO dao = new NotasDAO();
-					int rgm = Integer.parseInt(txtNFRgm.getText());
-
-					aluno = dao.consultarAluno(rgm);
-					txtNFNome.setText(aluno.getNome());
-
-					dao = new NotasDAO();
-					curso = dao.consultarCurso(rgm);
-					txtNFCurso.setText(curso.getCurso());
-
-					String disciplinaMateria = curso.getCurso(); // Armazena o valor retornado pelo DB
-					Object item = null;
-					for (int i = 0; i < comboBoxCurso.getItemCount(); i++) {
-						item = comboBoxCurso.getItemAt(i);
-						System.out.println(item);
-						if (disciplinaMateria.equals(item.toString())) {
-							if (item.toString().equals("Ciencia da Computação")) {
-								comboBoxDisciplina.setModel(new DefaultComboBoxModel(
-										new String[] { "--", "Estrutura de dados", "Matematica Discreta" }));
-							} else if (item.toString().equals("Medicina")) {
-								comboBoxDisciplina.setModel(
-										new DefaultComboBoxModel(new String[] { "--", "Radiologia", "Fisiologia" }));
-							} else if (item.toString().equals("Direito")) {
-								comboBoxDisciplina.setModel(new DefaultComboBoxModel(
-										new String[] { "--", "Direito Civil", "Direito Trabalhista" }));
-							}
-							break;
-						}
-					}
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, "Erro ao consultar");
-
-				}
-			}
-		});
-		btNConsultar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-search-60.png")));
-		btNConsultar.setBounds(369, 200, 70, 65);
-		jpNotaseFaltas.add(btNConsultar);
-
-		btNSalvar = new JButton("");
-		btNSalvar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-
-					Notas notas = new Notas();
-					notas.setRgm(Integer.parseInt(txtNFRgm.getText()));
-					notas.setSemestre(comboBoxSemestre.getSelectedItem().toString());
-					notas.setDisciplina(comboBoxDisciplina.getSelectedItem().toString());
-					notas.setFalta(Integer.parseInt(txtNFFalta.getText()));
-					notas.setNota(comboBoxNota.getSelectedItem().toString());
-					NotasDAO dao = new NotasDAO();
-					dao.salvarNotas(notas);
-					JOptionPane.showMessageDialog(null, "Salvo com sucesso!");
-
-				} catch (Exception e1) {
-
-					JOptionPane.showMessageDialog(null,
-							"Erro ao salvar, verifique se os dados estão corretos, ou verifique se o banco de dados está conectado");
-
-				}
-			}
-		});
-		btNSalvar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-save-all-60.png")));
-		btNSalvar.setBounds(209, 200, 70, 65);
-		jpNotaseFaltas.add(btNSalvar);
-
-		btNAlterar = new JButton("");
-		btNAlterar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-
-					Notas notas = new Notas();
-					notas.setRgm(Integer.parseInt(txtNFRgm.getText()));
-					notas.setSemestre(comboBoxSemestre.getSelectedItem().toString());
-					notas.setDisciplina(comboBoxDisciplina.getSelectedItem().toString());
-					notas.setFalta(Integer.parseInt(txtNFFalta.getText()));
-					notas.setNota(comboBoxNota.getSelectedItem().toString());
-					notas.setRgmSemestreDisciplina(notas.getRgm() + notas.getSemestre() + notas.getDisciplina());
-
-					NotasDAO dao = new NotasDAO();
-					dao.atualizar(notas);
-					JOptionPane.showMessageDialog(null, "Alterado com sucesso!");
-
-				} catch (Exception e1) {
-
-					JOptionPane.showMessageDialog(null,
-							"Erro ao alterar, verifique se os dados estão corretos, ou verifique se o banco de dados está conectado");
-
-				}
-			}
-		});
-		btNAlterar.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-edit-60.png")));
-		btNAlterar.setBounds(289, 200, 70, 65);
-		jpNotaseFaltas.add(btNAlterar);
-
-		btNExcluir = new JButton("");
-		btNExcluir.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-
-					NotasDAO dao = new NotasDAO();
-
-					int rgm = Integer.parseInt(txtNFRgm.getText()); // Remover dados dos campos
-					String disciplina = rgm + comboBoxSemestre.getSelectedItem().toString()
-							+ comboBoxDisciplina.getSelectedItem().toString();
-
-					dao.excluir(disciplina); // Chama o método Excluir
-					JOptionPane.showMessageDialog(null, "Excluido com Sucesso");
-
-				} catch (Exception e1) {
-
-					JOptionPane.showMessageDialog(null,
-							"Erro ao excluir, verifique se o banco de dados está conectado");
-
-				}
-			}
-		});
-		btNExcluir.setIcon(new ImageIcon(TelaPrincipal.class.getResource("/br/com/menu/view/icons8-delete-60.png")));
-		btNExcluir.setBounds(449, 200, 70, 65);
-		jpNotaseFaltas.add(btNExcluir);
-
-		jpBoletim = new JPanel();
-		tabbedPane.addTab("BoletimController", null, jpBoletim, null);
-		jpBoletim.setLayout(null);
-
-		txtBoletim = new TextArea();
-		txtBoletim.setBounds(10, 74, 604, 192);
-		txtBoletim.setEditable(false);
-		jpBoletim.add(txtBoletim);
-
-		lblNewLabel = new JLabel("Digite o RGM");
-		lblNewLabel.setBounds(10, 11, 104, 14);
-		jpBoletim.add(lblNewLabel);
-
-		txtBRgm = new JTextField();
-		txtBRgm.setBounds(109, 8, 125, 20);
-		jpBoletim.add(txtBRgm);
-		txtBRgm.setColumns(10);
-
-		btBConsulta = new JButton("Consultar");
-		btBConsulta.setBounds(10, 45, 89, 23);
-		btBConsulta.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					// Lista para armazenar os dados referentes aos RGM inserido
-					List<Notas> boletim = new ArrayList<Notas>();
-					// Inicia a conexão com o banco de dados
-					NotasDAO dao = new NotasDAO();
-					// Variavel para armazenar o Rgm
-					int rgm;
-					rgm = (Integer.parseInt(txtBRgm.getText()));
-					// Método para consultar o nome do aluno
-					aluno = dao.consultarAluno(rgm);
-					txtBoletim.append("Nome: " + aluno.getNome() + "\n");
-					// Abre a conexão novamente
-					dao = new NotasDAO();
-					// método para consultar o curso
-					curso = dao.consultarCurso(rgm);
-					txtBoletim.append("Curso: " + curso.getCurso().toString() + "\n" + "----------------------" + "\n");
-
-					dao = new NotasDAO();
-					// Instancia o método dao.boletim com os parametros da lista boletim
-					boletim = dao.boletim(rgm);
-					for (Notas notas : boletim) {
-
-						txtBoletim.append("Semestre: " + notas.getSemestre() + "\n");
-						txtBoletim.append("Disciplina: " + notas.getDisciplina() + "\n");
-						txtBoletim.append("Falta: " + notas.getFalta() + "\n");
-						txtBoletim.append("Nota: " + notas.getNota() + "\n\n ----------------------------------\n");
-					}
-					JOptionPane.showMessageDialog(null, "As notas foram consultadas");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null,
-							"Erro na inserção de dados, " + "verifique os dados se estão preenchidos corretamente, "
-									+ "ou se o banco de dados está conectado");
-				}
-			}
-		});
-		jpBoletim.add(btBConsulta);
-
-		btBLimpa = new JButton("Limpar");
-		btBLimpa.setBounds(145, 45, 89, 23);
-		btBLimpa.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				txtBoletim.setText(null);
-				;
-			}
-		});
-		jpBoletim.add(btBLimpa);
-
+		// Menu Bar Estilizado
 		menuBar = new JMenuBar();
-		menuBar.setBounds(0, 0, 664, 22);
+		menuBar.setBackground(Color.WHITE);
+		menuBar.setBorder(new LineBorder(new Color(229, 231, 235), 1));
+		menuBar.setBounds(0, 0, 764, 30);
 		contentPane.add(menuBar);
 
 		menualuno = new JMenu("Aluno");
+		menualuno.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		menuBar.add(menualuno);
 
 		mntmSalvar = new JMenuItem("Salvar");
-		mntmSalvar.setForeground(Color.BLUE);
-		mntmSalvar.setBackground(new Color(255, 255, 255));
+		mntmSalvar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		mntmSalvar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
 		menualuno.add(mntmSalvar);
 		mntmSalvar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) { // Ação ao pressionar o item do menu "Salvar"
-				try {
-					Aluno aluno = new Aluno();
-					Curso curso = new Curso();
-					Notas nota = new Notas();
-					// popular o meu objeto
-					aluno.setRgm(Integer.parseInt(txtRgm.getText()));
-					curso.setRgm(Integer.parseInt(txtRgm.getText()));
-					aluno.setNome(txtNome.getText());
-					aluno.setEmail(txtEmail.getText());
-					aluno.setDtaNascimento(txtDtaNascimento.getText());
-					aluno.setEndereco(txtEnd.getText());
-					aluno.setCpf(txtCpf.getText());
-					aluno.setUF(comboBoxUf.getSelectedItem().toString());
-					aluno.setMunicipio(txtMunicipio.getText());
-					aluno.setCelular(txtCelular.getText());
-					curso.setCampus(comboBoxCampus.getSelectedItem().toString());
-					curso.setCurso(comboBoxCurso.getSelectedItem().toString());
-					// Salva o valor do periodo de acordo com a escolha
-					if (rdbtnMatutino.isSelected()) {
-						curso.setPeriodo("Matutino");
-					} else if (rdbtnVespertino.isSelected()) {
-						curso.setPeriodo("Vespertino");
-					} else if (rdbtnNoturno.isSelected()) {
-						curso.setPeriodo("Noturno");
-					}
-
-					// abrir o BD
-					AlunoDAO dao = new AlunoDAO();
-					// salvar
-					dao.salvar(aluno, curso, nota);
-					JOptionPane.showMessageDialog(null, "Salvo com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null,
-							"Erro na inserção de dados, verifique os dados se estão preenchidos corretamente, ou se o banco de dados está conectado");
-				}
+			public void actionPerformed(ActionEvent e) {
+				salvarDadosAluno();
 			}
 		});
 
 		mntmAlterar = new JMenuItem("Alterar");
+		mntmAlterar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		menualuno.add(mntmAlterar);
 		mntmAlterar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) { // Ação ao pressionar o item do menu "Alterar"
-				try {
-					Aluno aluno = new Aluno();
-					Curso curso = new Curso();
-					aluno.setRgm(Integer.parseInt(txtRgm.getText()));
-					curso.setRgm(Integer.parseInt(txtRgm.getText()));
-					aluno.setNome(txtNome.getText());
-					aluno.setEmail(txtEmail.getText());
-					aluno.setDtaNascimento(txtDtaNascimento.getText());
-					aluno.setEndereco(txtEnd.getText()); // popular o meu objeto
-					aluno.setCpf(txtCpf.getText());
-					aluno.setUF(comboBoxUf.getSelectedItem().toString());
-					aluno.setMunicipio(txtMunicipio.getText());
-					aluno.setCelular(txtCelular.getText());
-					curso.setCampus(comboBoxCampus.getSelectedItem().toString());
-					curso.setCurso(comboBoxCurso.getSelectedItem().toString());
-					if (rdbtnMatutino.isSelected()) {
-						curso.setPeriodo("Matutino");
-					} else if (rdbtnVespertino.isSelected()) {
-						curso.setPeriodo("Vespertino");
-					} else if (rdbtnNoturno.isSelected()) {
-						curso.setPeriodo("Noturno");
-					}
-					AlunoDAO dao = new AlunoDAO(); // abrir o BD
-					dao.atualizar(aluno, curso);
-					JOptionPane.showMessageDialog(null, "Atualizado com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null,
-							"Erro ao atualizar, verifique se os dados estão inseridos corretamente, ou verifique a conexão com o banco de dados");
-				}
+			public void actionPerformed(ActionEvent e) {
+				alterarDadosAluno();
 			}
 		});
 
 		mntmConsultar = new JMenuItem("Consultar");
+		mntmConsultar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		menualuno.add(mntmConsultar);
 		mntmConsultar.addActionListener(new ActionListener() {
-			// Consultar aluno usando como parametro o RGM
 			public void actionPerformed(ActionEvent e) {
-				try {
-
-					AlunoDAO dao = new AlunoDAO();
-					int rgm = Integer.parseInt(txtRgm.getText());
-					// Chama o método ConsultarAluno da classe DAO com o Parametro RGM
-					aluno = dao.consultarAluno(rgm);
-					txtNome.setText(aluno.getNome());
-					txtCpf.setValue(maskCpf.valueToString(aluno.getCpf()));
-					txtEnd.setText(aluno.getEndereco());
-					txtDtaNascimento.setValue(maskDtaNascimento.valueToString(aluno.getDtaNascimento()));
-					// Armazena o valor retornado pelo DB
-					String ufSelect = aluno.getUF();
-					// Laço for para verificar a posição do item retornado pelo DB
-					for (int i = 0; i < comboBoxUf.getItemCount(); i++) {
-						Object item = comboBoxUf.getItemAt(i);
-						// Quando o item retornado pelo DB for igual ao item do comboBox, o item é
-						// selecionado
-						if (item.toString().equals(ufSelect)) {
-							comboBoxUf.setSelectedItem(item);
-							break;
-						}
-					}
-
-					txtMunicipio.setValue(aluno.getMunicipio());
-					txtCelular.setValue(maskCelular.valueToString(aluno.getCelular()));
-					txtDtaNascimento.setValue(maskDtaNascimento.valueToString(aluno.getDtaNascimento()));
-					txtEmail.setValue(aluno.getEmail());
-
-					dao = new AlunoDAO();
-					curso = dao.consultarCurso(rgm);
-
-					String cursoSelect = curso.getCurso(); // Armazena o valor retornado pelo DB
-					for (int i = 0; i < comboBoxCurso.getItemCount(); i++) { // Laço for para verificar a posição do
-																				// item retornado pelo DB
-						Object item = comboBoxCurso.getItemAt(i);
-						if (item.toString().equals(cursoSelect)) { // Quando o item retornado pelo DB for igual ao item
-																	// do comboBox, o item é selecionado
-							comboBoxCurso.setSelectedItem(item); // Se o item for encontrado, selecione-o
-							break;
-						}
-					}
-
-					String campusSelect = curso.getCampus();
-					for (int i = 0; i < comboBoxCampus.getItemCount(); i++) {
-						Object item = comboBoxCampus.getItemAt(i);
-						if (item.toString().equals(campusSelect)) {
-							comboBoxCampus.setSelectedItem(item);
-							break;
-						}
-					}
-
-					if (curso.getPeriodo().equals("Matutino")) {
-						grupoPeriodo.setSelected(rdbtnMatutino.getModel(), true);
-					} else if (curso.getPeriodo().equals("Vespertino")) {
-						grupoPeriodo.setSelected(rdbtnVespertino.getModel(), true); // Condições para selecionar o Rádio
-																					// correspondente ao BD
-					} else if (curso.getPeriodo().equals("Noturno")) {
-						grupoPeriodo.setSelected(rdbtnNoturno.getModel(), true);
-					}
-
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, "Erro ao consultar");
-					System.out.println(e1.getMessage());
-				}
+				consultarAlunoPorRgm(txtRgm.getText());
 			}
 		});
 
 		mntmExcluir = new JMenuItem("Excluir");
+		mntmExcluir.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		menualuno.add(mntmExcluir);
 		mntmExcluir.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) { // excluir aluno
-				try {
-					AlunoDAO dao = new AlunoDAO();
-					int rgm = Integer.parseInt(txtRgm.getText()); // Remover dados dos campos
-					dao.excluir(rgm); // Chama o método Excluir
-					JOptionPane.showMessageDialog(null, "Excluido com Sucesso");
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, "Erro ao excluir");
-				}
+			public void actionPerformed(ActionEvent e) {
+				excluirAlunoPorRgm(txtRgm.getText());
 			}
 		});
 
 		mntmSair = new JMenuItem("Sair");
-		mntmSair.setBorder(new BevelBorder(BevelBorder.LOWERED, Color.BLUE, Color.BLUE, Color.BLUE, Color.BLUE));
+		mntmSair.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		mntmSair.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
 		menualuno.add(mntmSair);
 		mntmSair.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
-				System.exit(0); // Fecha a janela quando o botão "SAIR" é clicado
+				System.exit(0);
 			}
 		});
 
 		menunotafalta = new JMenu("Notas e Faltas");
+		menunotafalta.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		menuBar.add(menunotafalta);
 
 		mntmNFSalvar = new JMenuItem("Salvar");
+		mntmNFSalvar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		menunotafalta.add(mntmNFSalvar);
 		mntmNFSalvar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-
-					Notas notas = new Notas();
-					notas.setRgm(Integer.parseInt(txtNFRgm.getText()));
-					notas.setSemestre(comboBoxSemestre.getSelectedItem().toString());
-					notas.setDisciplina(comboBoxDisciplina.getSelectedItem().toString());
-					notas.setFalta(Integer.parseInt(txtNFFalta.getText()));
-					notas.setNota(comboBoxNota.getSelectedItem().toString());
-					NotasDAO dao = new NotasDAO();
-					dao.salvarNotas(notas);
-					JOptionPane.showMessageDialog(null, "Salvo com sucesso!");
-
-				} catch (Exception e1) {
-
-					JOptionPane.showMessageDialog(null, "Erro ao salvar");
-
-				}
+				salvarNotasEFaltas();
 			}
 		});
 
 		mntmNFAlterar = new JMenuItem("Alterar");
+		mntmNFAlterar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		mntmNFAlterar.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK));
 		menunotafalta.add(mntmNFAlterar);
 		mntmNFAlterar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-
-					Notas notas = new Notas();
-					notas.setRgm(Integer.parseInt(txtNFRgm.getText()));
-					notas.setSemestre(comboBoxSemestre.getSelectedItem().toString());
-					notas.setDisciplina(comboBoxDisciplina.getSelectedItem().toString());
-					notas.setFalta(Integer.parseInt(txtNFFalta.getText()));
-					notas.setNota(comboBoxNota.getSelectedItem().toString());
-					notas.setRgmSemestreDisciplina(notas.getRgm() + notas.getSemestre() + notas.getDisciplina());
-
-					NotasDAO dao = new NotasDAO();
-					dao.atualizar(notas);
-					JOptionPane.showMessageDialog(null, "Alterado com sucesso!");
-
-				} catch (Exception e1) {
-
-					JOptionPane.showMessageDialog(null, "Erro ao alterar");
-
-				}
+				alterarNotasEFaltas();
 			}
 		});
 
 		mntmNFExcluir = new JMenuItem("Excluir");
+		mntmNFExcluir.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		menunotafalta.add(mntmNFExcluir);
 		mntmNFExcluir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-
-					NotasDAO dao = new NotasDAO();
-
-					int rgm = Integer.parseInt(txtNFRgm.getText()); // Remover dados dos campos
-					String disciplina = rgm + comboBoxSemestre.getSelectedItem().toString()
-							+ comboBoxDisciplina.getSelectedItem().toString();
-
-					dao.excluir(disciplina); // Chama o método Excluir
-					JOptionPane.showMessageDialog(null, "Excluido com Sucesso");
-
-					txtNFRgm = null;
-					txtNFNome = null;
-					txtNFCurso = null;
-//					comboBoxNFDisciplina.//
-
-				} catch (Exception e1) {
-
-					JOptionPane.showMessageDialog(null, "Erro ao excluir");
-
-				}
+				excluirNotasEFaltas();
 			}
 		});
 
 		mntmNFConsultar = new JMenuItem("Consultar");
+		mntmNFConsultar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		menunotafalta.add(mntmNFConsultar);
 		mntmNFConsultar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-					NotasDAO dao = new NotasDAO();
-					int rgm = Integer.parseInt(txtNFRgm.getText());
-
-					aluno = dao.consultarAluno(rgm);
-					txtNFNome.setText(aluno.getNome());
-
-					dao = new NotasDAO();
-					curso = dao.consultarCurso(rgm);
-					txtNFCurso.setText(curso.getCurso());
-
-					String disciplinaMateria = curso.getCurso(); // Armazena o valor retornado pelo DB
-					Object item = null;
-					for (int i = 0; i < comboBoxCurso.getItemCount(); i++) {
-						item = comboBoxCurso.getItemAt(i);
-						if (disciplinaMateria.equals(item.toString())) {
-							if (item.toString().equals("Ciencia da Computação")) {
-								comboBoxDisciplina.setModel(new DefaultComboBoxModel(
-										new String[] { "--", "Estrutura de dados", "Matemática Discreta" }));
-							} else if (item.toString().equals("Medicina")) {
-								comboBoxDisciplina.setModel(
-										new DefaultComboBoxModel(new String[] { "--", "Radiologia", "Fisiologia" }));
-							} else if (item.toString().equals("Direito")) {
-								comboBoxDisciplina.setModel(new DefaultComboBoxModel(
-										new String[] { "--", "Direito Civil", "Direito Trabalhista" }));
-							}
-							break;
-						}
-					}
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null,
-							"Erro ao consultar, verifique se os dados estão corretos, ou verifique a conexão com o banco de dados");
-
-				}
+				consultarNotasPorRgm(txtNFRgm.getText());
 			}
 		});
 
 		menuajuda = new JMenu("Ajuda");
+		menuajuda.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		menuBar.add(menuajuda);
 
 		mntmSobre = new JMenuItem("Sobre");
+		mntmSobre.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		menuajuda.add(mntmSobre);
 		mntmSobre.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String[] instrucoes = { "Passo 1: Cadastre os dados pessoais do aluno.",
-						"Passo 2: Insira o rgm na aba Notas e faltas e Consulte.",
-						"Passo 3: Selecione a disciplina, o semestre, a nota e a falta do aluno e salve em seguida.",
-						"Passo 4: Na aba BoletimController, é possivel verificar todas as notas cadastradas utilizando o rgm na pesquisa." };
-				int i = 0;
-				int resposta = JOptionPane.YES_OPTION;
-				while (i < instrucoes.length && resposta == JOptionPane.YES_OPTION) {
-					resposta = JOptionPane.showOptionDialog(null, instrucoes[i], "Instruções",
-							JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
-							new String[] { "Próximo", "Cancelar" }, "Próximo");
-					i++;
-				}
-				if (resposta == JOptionPane.CANCEL_OPTION) {
-					JOptionPane.showMessageDialog(null, "Operação cancelada pelo usuário.");
-				}
+				exibirInstrucoesSobre();
 			}
 		});
 
+		// JTabbedPane Estilizado
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		tabbedPane.setBounds(5, 38, 754, 455);
+		contentPane.add(tabbedPane);
+
+		// Formatadores de Campo
+		MaskFormatter maskDtaNascimento = new MaskFormatter("##/##/####");
+		MaskFormatter maskCpf = new MaskFormatter("###.###.###-##");
+		MaskFormatter maskCelular = new MaskFormatter("(##)#########");
+		maskDtaNascimento.setPlaceholderCharacter('_');
+		maskCpf.setPlaceholderCharacter('_');
+		maskCelular.setPlaceholderCharacter('_');
+
+		// ----------------------------------------------------
+		// 1ª ABA: DADOS PESSOAIS
+		// ----------------------------------------------------
+		jpDadosPessoais = new JPanel();
+		jpDadosPessoais.setBackground(COLOR_PANEL);
+		jpDadosPessoais.setLayout(null);
+		tabbedPane.addTab("Dados Pessoais", null, jpDadosPessoais, null);
+
+		// Labels & Inputs
+		lblRgm = new JLabel("RGM");
+		styleLabel(lblRgm);
+		lblRgm.setBounds(20, 30, 60, 25);
+		jpDadosPessoais.add(lblRgm);
+
+		txtRgm = new JFormattedTextField();
+		styleTextField(txtRgm);
+		txtRgm.setBounds(80, 27, 120, 32);
+		jpDadosPessoais.add(txtRgm);
+
+		lblNome = new JLabel("Nome");
+		styleLabel(lblNome);
+		lblNome.setBounds(225, 30, 50, 25);
+		jpDadosPessoais.add(lblNome);
+
+		txtNome = new JFormattedTextField();
+		styleTextField(txtNome);
+		txtNome.setBounds(280, 27, 440, 32);
+		jpDadosPessoais.add(txtNome);
+
+		lblDtaNascimento = new JLabel("Nascimento");
+		styleLabel(lblDtaNascimento);
+		lblDtaNascimento.setBounds(20, 80, 100, 25);
+		jpDadosPessoais.add(lblDtaNascimento);
+
+		txtDtaNascimento = new JFormattedTextField(maskDtaNascimento);
+		styleTextField(txtDtaNascimento);
+		txtDtaNascimento.setBounds(110, 77, 130, 32);
+		jpDadosPessoais.add(txtDtaNascimento);
+
+		lblCpf = new JLabel("CPF");
+		styleLabel(lblCpf);
+		lblCpf.setBounds(270, 80, 40, 25);
+		jpDadosPessoais.add(lblCpf);
+
+		txtCpf = new JFormattedTextField(maskCpf);
+		styleTextField(txtCpf);
+		txtCpf.setBounds(315, 77, 190, 32);
+		jpDadosPessoais.add(txtCpf);
+
+		lblEmail = new JLabel("Email");
+		styleLabel(lblEmail);
+		lblEmail.setBounds(20, 130, 60, 25);
+		jpDadosPessoais.add(lblEmail);
+
+		txtEmail = new JFormattedTextField();
+		styleTextField(txtEmail);
+		txtEmail.setBounds(80, 127, 640, 32);
+		jpDadosPessoais.add(txtEmail);
+
+		lblEnd = new JLabel("End.");
+		styleLabel(lblEnd);
+		lblEnd.setBounds(20, 180, 60, 25);
+		jpDadosPessoais.add(lblEnd);
+
+		txtEnd = new JFormattedTextField();
+		styleTextField(txtEnd);
+		txtEnd.setBounds(80, 177, 640, 32);
+		jpDadosPessoais.add(txtEnd);
+
+		lblMunicipio = new JLabel("Município");
+		styleLabel(lblMunicipio);
+		lblMunicipio.setBounds(20, 230, 80, 25);
+		jpDadosPessoais.add(lblMunicipio);
+
+		txtMunicipio = new JFormattedTextField();
+		styleTextField(txtMunicipio);
+		txtMunicipio.setBounds(95, 227, 160, 32);
+		jpDadosPessoais.add(txtMunicipio);
+
+		lblUf = new JLabel("UF");
+		styleLabel(lblUf);
+		lblUf.setBounds(280, 230, 30, 25);
+		jpDadosPessoais.add(lblUf);
+
+		comboBoxUf = new JComboBox();
+		comboBoxUf.setModel(new DefaultComboBoxModel(
+				new String[] { "--", "AC", "AL", "AP", "AM", "BA", "CE", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB",
+						"PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" }));
+		styleComboBox(comboBoxUf);
+		comboBoxUf.setBounds(315, 227, 70, 32);
+		jpDadosPessoais.add(comboBoxUf);
+
+		lblCelular = new JLabel("Celular");
+		styleLabel(lblCelular);
+		lblCelular.setBounds(415, 230, 60, 25);
+		jpDadosPessoais.add(lblCelular);
+
+		txtCelular = new JFormattedTextField(maskCelular);
+		styleTextField(txtCelular);
+		txtCelular.setBounds(475, 227, 245, 32);
+		jpDadosPessoais.add(txtCelular);
+
+		// Botões de Ação na 1ª Aba
+		btDPSair = createActionButton("/br/com/menu/img/icons8-off-59.png", "Sair do Aplicativo");
+		btDPSair.setBounds(155, 310, 72, 60);
+		jpDadosPessoais.add(btDPSair);
+		btDPSair.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+
+		btDPSalvar = createActionButton("/br/com/menu/img/icons8-save-all-60.png", "Salvar Aluno");
+		btDPSalvar.setBounds(242, 310, 72, 60);
+		jpDadosPessoais.add(btDPSalvar);
+		btDPSalvar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				salvarDadosAluno();
+			}
+		});
+
+		btDPAlterar = createActionButton("/br/com/menu/img/icons8-edit-60.png", "Alterar Aluno");
+		btDPAlterar.setBounds(329, 310, 72, 60);
+		jpDadosPessoais.add(btDPAlterar);
+		btDPAlterar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				alterarDadosAluno();
+			}
+		});
+
+		btDPconsultar = createActionButton("/br/com/menu/img/icons8-search-60.png", "Consultar Aluno");
+		btDPconsultar.setBounds(416, 310, 72, 60);
+		jpDadosPessoais.add(btDPconsultar);
+		btDPconsultar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				consultarAlunoPorRgm(txtRgm.getText());
+			}
+		});
+
+		btDPExcluir = createActionButton("/br/com/menu/img/icons8-delete-60.png", "Excluir Aluno");
+		btDPExcluir.setBounds(503, 310, 72, 60);
+		jpDadosPessoais.add(btDPExcluir);
+		btDPExcluir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				excluirAlunoPorRgm(txtRgm.getText());
+			}
+		});
+
+
+		// ----------------------------------------------------
+		// 2ª ABA: CURSO
+		// ----------------------------------------------------
+		jpCurso = new JPanel();
+		jpCurso.setBackground(COLOR_PANEL);
+		jpCurso.setLayout(null);
+		tabbedPane.addTab("Curso", null, jpCurso, null);
+
+		lblCurso = new JLabel("Curso");
+		styleLabel(lblCurso);
+		lblCurso.setBounds(30, 45, 80, 25);
+		jpCurso.add(lblCurso);
+
+		comboBoxCurso = new JComboBox();
+		comboBoxCurso.setModel(
+				new DefaultComboBoxModel(new String[] { "--", "Ciencia da Computação", "Medicina", "Direito" }));
+		styleComboBox(comboBoxCurso);
+		comboBoxCurso.setBounds(110, 41, 380, 32);
+		jpCurso.add(comboBoxCurso);
+
+		lblCampus = new JLabel("Campus");
+		styleLabel(lblCampus);
+		lblCampus.setBounds(30, 105, 80, 25);
+		jpCurso.add(lblCampus);
+
+		comboBoxCampus = new JComboBox();
+		comboBoxCampus.setModel(
+				new DefaultComboBoxModel(new String[] { "--", "Unicid - Carrão", "Unicid - Cid. Universitaria" }));
+		styleComboBox(comboBoxCampus);
+		comboBoxCampus.setBounds(110, 101, 380, 32);
+		jpCurso.add(comboBoxCampus);
+
+		lblPeriodo = new JLabel("Período");
+		styleLabel(lblPeriodo);
+		lblPeriodo.setBounds(30, 165, 80, 25);
+		jpCurso.add(lblPeriodo);
+
+		rdbtnMatutino = new JRadioButton("Matutino");
+		rdbtnMatutino.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		rdbtnMatutino.setBackground(COLOR_PANEL);
+		rdbtnMatutino.setForeground(COLOR_TEXT_MAIN);
+		grupoPeriodo.add(rdbtnMatutino);
+		rdbtnMatutino.setBounds(110, 166, 100, 23);
+		jpCurso.add(rdbtnMatutino);
+
+		rdbtnVespertino = new JRadioButton("Vespertino");
+		rdbtnVespertino.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		rdbtnVespertino.setBackground(COLOR_PANEL);
+		rdbtnVespertino.setForeground(COLOR_TEXT_MAIN);
+		grupoPeriodo.add(rdbtnVespertino);
+		rdbtnVespertino.setBounds(220, 166, 110, 23);
+		jpCurso.add(rdbtnVespertino);
+
+		rdbtnNoturno = new JRadioButton("Noturno");
+		rdbtnNoturno.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		rdbtnNoturno.setBackground(COLOR_PANEL);
+		rdbtnNoturno.setForeground(COLOR_TEXT_MAIN);
+		grupoPeriodo.add(rdbtnNoturno);
+		rdbtnNoturno.setBounds(340, 166, 100, 23);
+		jpCurso.add(rdbtnNoturno);
+
+		// Botões de Ação na 2ª Aba
+		btCSair = createActionButton("/br/com/menu/img/icons8-off-59.png", "Sair do Aplicativo");
+		btCSair.setBounds(155, 310, 72, 60);
+		jpCurso.add(btCSair);
+		btCSair.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+
+		btCSalvar = createActionButton("/br/com/menu/img/icons8-save-all-60.png", "Salvar Aluno");
+		btCSalvar.setBounds(242, 310, 72, 60);
+		jpCurso.add(btCSalvar);
+		btCSalvar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				salvarDadosAluno();
+			}
+		});
+
+		btCAlterar = createActionButton("/br/com/menu/img/icons8-edit-60.png", "Alterar Aluno");
+		btCAlterar.setBounds(329, 310, 72, 60);
+		jpCurso.add(btCAlterar);
+		btCAlterar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				alterarDadosAluno();
+			}
+		});
+
+		btCConsultar = createActionButton("/br/com/menu/img/icons8-search-60.png", "Consultar Aluno");
+		btCConsultar.setBounds(416, 310, 72, 60);
+		jpCurso.add(btCConsultar);
+		btCConsultar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				consultarAlunoPorRgm(txtRgm.getText());
+			}
+		});
+
+		btCExcluir = createActionButton("/br/com/menu/img/icons8-delete-60.png", "Excluir Aluno");
+		btCExcluir.setBounds(503, 310, 72, 60);
+		jpCurso.add(btCExcluir);
+		btCExcluir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				excluirAlunoPorRgm(txtRgm.getText());
+			}
+		});
+
+
+		// ----------------------------------------------------
+		// 3ª ABA: NOTAS E FALTAS
+		// ----------------------------------------------------
+		jpNotaseFaltas = new JPanel();
+		jpNotaseFaltas.setBackground(COLOR_PANEL);
+		jpNotaseFaltas.setLayout(null);
+		tabbedPane.addTab("Notas e Faltas", null, jpNotaseFaltas, null);
+
+		lblNFRgm = new JLabel("RGM");
+		styleLabel(lblNFRgm);
+		lblNFRgm.setBounds(25, 30, 50, 25);
+		jpNotaseFaltas.add(lblNFRgm);
+
+		txtNFRgm = new JTextField();
+		styleTextField(txtNFRgm);
+		txtNFRgm.setBounds(85, 27, 110, 32);
+		jpNotaseFaltas.add(txtNFRgm);
+
+		txtNFNome = new JTextField();
+		styleTextField(txtNFNome);
+		txtNFNome.setEditable(false);
+		txtNFNome.setBackground(new Color(237, 233, 254)); // Roxo claro diferenciando campo inativo
+		txtNFNome.setBounds(210, 27, 455, 32);
+		jpNotaseFaltas.add(txtNFNome);
+
+		txtNFCurso = new JTextField();
+		styleTextField(txtNFCurso);
+		txtNFCurso.setEditable(false);
+		txtNFCurso.setBackground(new Color(237, 233, 254));
+		txtNFCurso.setBounds(85, 77, 580, 32);
+		jpNotaseFaltas.add(txtNFCurso);
+
+		lblNFDisciplina = new JLabel("Disciplina");
+		styleLabel(lblNFDisciplina);
+		lblNFDisciplina.setBounds(25, 130, 80, 25);
+		jpNotaseFaltas.add(lblNFDisciplina);
+
+		comboBoxDisciplina = new JComboBox();
+		styleComboBox(comboBoxDisciplina);
+		comboBoxDisciplina.setBounds(105, 127, 560, 32);
+		jpNotaseFaltas.add(comboBoxDisciplina);
+
+		lblNFSemestre = new JLabel("Semestre");
+		styleLabel(lblNFSemestre);
+		lblNFSemestre.setBounds(25, 180, 80, 25);
+		jpNotaseFaltas.add(lblNFSemestre);
+
+		comboBoxSemestre = new JComboBox();
+		comboBoxSemestre.setModel(new DefaultComboBoxModel(new String[] { "--", "1.2022", "2.2022", "1.2023", "2.2023" }));
+		styleComboBox(comboBoxSemestre);
+		comboBoxSemestre.setBounds(105, 177, 110, 32);
+		jpNotaseFaltas.add(comboBoxSemestre);
+
+		lblNFNota = new JLabel("Nota");
+		styleLabel(lblNFNota);
+		lblNFNota.setBounds(240, 180, 45, 25);
+		jpNotaseFaltas.add(lblNFNota);
+
+		comboBoxNota = new JComboBox();
+		comboBoxNota.setModel(new DefaultComboBoxModel(new String[] { "--", "0,0", "0,5", "1,0", "1,5", "2,0", "2,5", "3,0",
+				"3,5", "4,0", "4,5", "5,0", "5,5", "6,0", "6,5", "7,0", "7,5", "8,0", "8,5", "9,0", "9,5", "10,0", "10" }));
+		styleComboBox(comboBoxNota);
+		comboBoxNota.setBounds(285, 177, 80, 32);
+		jpNotaseFaltas.add(comboBoxNota);
+
+		lblNFFalta = new JLabel("Faltas");
+		styleLabel(lblNFFalta);
+		lblNFFalta.setBounds(395, 180, 50, 25);
+		jpNotaseFaltas.add(lblNFFalta);
+
+		txtNFFalta = new JTextField();
+		styleTextField(txtNFFalta);
+		txtNFFalta.setBounds(450, 177, 80, 32);
+		jpNotaseFaltas.add(txtNFFalta);
+
+		// Botões de Ação na 3ª Aba
+		btNSair = createActionButton("/br/com/menu/img/icons8-off-59.png", "Sair do Aplicativo");
+		btNSair.setBounds(155, 310, 72, 60);
+		jpNotaseFaltas.add(btNSair);
+		btNSair.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+
+		btNSalvar = createActionButton("/br/com/menu/img/icons8-save-all-60.png", "Salvar Notas");
+		btNSalvar.setBounds(242, 310, 72, 60);
+		jpNotaseFaltas.add(btNSalvar);
+		btNSalvar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				salvarNotasEFaltas();
+			}
+		});
+
+		btNAlterar = createActionButton("/br/com/menu/img/icons8-edit-60.png", "Alterar Notas");
+		btNAlterar.setBounds(329, 310, 72, 60);
+		jpNotaseFaltas.add(btNAlterar);
+		btNAlterar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				alterarNotasEFaltas();
+			}
+		});
+
+		btNConsultar = createActionButton("/br/com/menu/img/icons8-search-60.png", "Consultar Notas");
+		btNConsultar.setBounds(416, 310, 72, 60);
+		jpNotaseFaltas.add(btNConsultar);
+		btNConsultar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				consultarNotasPorRgm(txtNFRgm.getText());
+			}
+		});
+
+		btNExcluir = createActionButton("/br/com/menu/img/icons8-delete-60.png", "Excluir Notas");
+		btNExcluir.setBounds(503, 310, 72, 60);
+		jpNotaseFaltas.add(btNExcluir);
+		btNExcluir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				excluirNotasEFaltas();
+			}
+		});
+
+
+		// ----------------------------------------------------
+		// 4ª ABA: BOLETIM (RENOMEADO)
+		// ----------------------------------------------------
+		jpBoletim = new JPanel();
+		jpBoletim.setBackground(COLOR_PANEL);
+		jpBoletim.setLayout(null);
+		tabbedPane.addTab("Boletim", null, jpBoletim, null); // Nome corrigido!
+
+		lblNewLabel = new JLabel("Digite o RGM");
+		styleLabel(lblNewLabel);
+		lblNewLabel.setBounds(20, 20, 100, 25);
+		jpBoletim.add(lblNewLabel);
+
+		txtBRgm = new JTextField();
+		styleTextField(txtBRgm);
+		txtBRgm.setBounds(115, 17, 120, 32);
+		jpBoletim.add(txtBRgm);
+
+		// Botões estilizados do Boletim
+		btBConsulta = new JButton("Consultar");
+		btBConsulta.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		btBConsulta.setForeground(Color.WHITE);
+		btBConsulta.setBackground(COLOR_PRIMARY);
+		btBConsulta.setFocusPainted(false);
+		btBConsulta.setBorder(new EmptyBorder(5, 15, 5, 15));
+		btBConsulta.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btBConsulta.setBounds(250, 17, 120, 32);
+		jpBoletim.add(btBConsulta);
+		btBConsulta.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				gerarBoletimFormatado();
+			}
+		});
+
+		btBLimpa = new JButton("Limpar");
+		btBLimpa.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		btBLimpa.setForeground(new Color(75, 85, 99));
+		btBLimpa.setBackground(new Color(229, 231, 235));
+		btBLimpa.setFocusPainted(false);
+		btBLimpa.setBorder(new EmptyBorder(5, 15, 5, 15));
+		btBLimpa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btBLimpa.setBounds(380, 17, 100, 32);
+		jpBoletim.add(btBLimpa);
+		btBLimpa.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				txtBoletim.setText("");
+			}
+		});
+
+		// Text Area em Monospaced com ScrollPane
+		txtBoletim = new JTextArea();
+		txtBoletim.setFont(new Font("Consolas", Font.PLAIN, 13)); // Fonte perfeita para tabelas alinhadas
+		txtBoletim.setEditable(false);
+		txtBoletim.setBackground(Color.WHITE);
+		txtBoletim.setForeground(new Color(31, 41, 55));
+		txtBoletim.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+		JScrollPane scrollPane = new JScrollPane(txtBoletim);
+		scrollPane.setBounds(20, 65, 710, 340);
+		scrollPane.setBorder(new LineBorder(new Color(229, 231, 235), 1));
+		jpBoletim.add(scrollPane);
+	}
+
+	// ----------------------------------------------------
+	// MÉTODOS DE CONTROLE E RE-ESTILIZAÇÃO (DESIGN SYSTEM)
+	// ----------------------------------------------------
+	
+	private void styleTextField(JTextField field) {
+		field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		field.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+			javax.swing.BorderFactory.createLineBorder(new Color(209, 213, 219), 1),
+			javax.swing.BorderFactory.createEmptyBorder(4, 10, 4, 10)
+		));
+		field.setBackground(Color.WHITE);
+		field.setForeground(COLOR_TEXT_MAIN);
+	}
+
+	private void styleLabel(JLabel label) {
+		label.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		label.setForeground(COLOR_TEXT_LABEL);
+	}
+
+	private void styleComboBox(JComboBox<?> box) {
+		box.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		box.setBackground(Color.WHITE);
+		box.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(209, 213, 219), 1));
+	}
+
+	private JButton createActionButton(String iconPath, String tooltip) {
+		JButton button = new JButton();
+		try {
+			java.net.URL imgUrl = TelaPrincipal.class.getResource(iconPath);
+			if (imgUrl != null) {
+				button.setIcon(new ImageIcon(imgUrl));
+			}
+		} catch (Exception e) {
+			System.err.println("Icon missing: " + iconPath);
+		}
+		button.setToolTipText(tooltip);
+		button.setFocusPainted(false);
+		button.setBorderPainted(true);
+		button.setContentAreaFilled(false);
+		button.setOpaque(true);
+		button.setBackground(Color.WHITE);
+		button.setBorder(new LineBorder(new Color(229, 231, 235), 1));
+		button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		
+		// Efeito Hover
+		button.addMouseListener(new java.awt.event.MouseAdapter() {
+			public void mouseEntered(java.awt.event.MouseEvent e) {
+				button.setBackground(new Color(243, 244, 246));
+				button.setBorder(new LineBorder(COLOR_PRIMARY, 1));
+			}
+			public void mouseExited(java.awt.event.MouseEvent e) {
+				button.setBackground(Color.WHITE);
+				button.setBorder(new LineBorder(new Color(229, 231, 235), 1));
+			}
+		});
+		return button;
+	}
+
+	// ----------------------------------------------------
+	// MÉTODOS DE SISTEMA & BANCO DE DADOS (COM VALIDAÇÃO)
+	// ----------------------------------------------------
+
+	private void salvarDadosAluno() {
+		try {
+			// Validação do RGM
+			String rgmStr = txtRgm.getText().trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Por favor, preencha o campo RGM.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+				txtRgm.requestFocus();
+				return;
+			}
+			int rgm;
+			try {
+				rgm = Integer.parseInt(rgmStr);
+			} catch (NumberFormatException e) {
+				JOptionPane.showMessageDialog(this, "O RGM deve ser apenas números inteiros.", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
+				txtRgm.requestFocus();
+				return;
+			}
+
+			// Validação do Nome
+			String nome = txtNome.getText().trim();
+			if (nome.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Por favor, preencha o campo Nome.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+				txtNome.requestFocus();
+				return;
+			}
+
+			Aluno aluno = new Aluno();
+			Curso curso = new Curso();
+			Notas nota = new Notas();
+
+			aluno.setRgm(rgm);
+			curso.setRgm(rgm);
+			aluno.setNome(nome);
+			aluno.setEmail(txtEmail.getText().trim());
+			aluno.setDtaNascimento(txtDtaNascimento.getText().trim());
+			aluno.setEndereco(txtEnd.getText().trim());
+			aluno.setCpf(txtCpf.getText().trim());
+			aluno.setUF(comboBoxUf.getSelectedItem().toString());
+			aluno.setMunicipio(txtMunicipio.getText().trim());
+			aluno.setCelular(txtCelular.getText().trim());
+			
+			curso.setCampus(comboBoxCampus.getSelectedItem().toString());
+			curso.setCurso(comboBoxCurso.getSelectedItem().toString());
+
+			if (rdbtnMatutino.isSelected()) {
+				curso.setPeriodo("Matutino");
+			} else if (rdbtnVespertino.isSelected()) {
+				curso.setPeriodo("Vespertino");
+			} else if (rdbtnNoturno.isSelected()) {
+				curso.setPeriodo("Noturno");
+			} else {
+				curso.setPeriodo("Não Definido");
+			}
+
+			AlunoDAO dao = new AlunoDAO();
+			dao.salvar(aluno, curso, nota);
+			JOptionPane.showMessageDialog(this, "Aluno e Curso cadastrados com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Erro ao salvar aluno:\n" + e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void alterarDadosAluno() {
+		try {
+			String rgmStr = txtRgm.getText().trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Digite o RGM do aluno que deseja alterar.", "RGM Requerido", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			int rgm = Integer.parseInt(rgmStr);
+
+			Aluno aluno = new Aluno();
+			Curso curso = new Curso();
+
+			aluno.setRgm(rgm);
+			curso.setRgm(rgm);
+			aluno.setNome(txtNome.getText().trim());
+			aluno.setEmail(txtEmail.getText().trim());
+			aluno.setDtaNascimento(txtDtaNascimento.getText().trim());
+			aluno.setEndereco(txtEnd.getText().trim());
+			aluno.setCpf(txtCpf.getText().trim());
+			aluno.setUF(comboBoxUf.getSelectedItem().toString());
+			aluno.setMunicipio(txtMunicipio.getText().trim());
+			aluno.setCelular(txtCelular.getText().trim());
+
+			curso.setCampus(comboBoxCampus.getSelectedItem().toString());
+			curso.setCurso(comboBoxCurso.getSelectedItem().toString());
+
+			if (rdbtnMatutino.isSelected()) {
+				curso.setPeriodo("Matutino");
+			} else if (rdbtnVespertino.isSelected()) {
+				curso.setPeriodo("Vespertino");
+			} else if (rdbtnNoturno.isSelected()) {
+				curso.setPeriodo("Noturno");
+			}
+
+			AlunoDAO dao = new AlunoDAO();
+			dao.atualizar(aluno, curso);
+			JOptionPane.showMessageDialog(this, "Dados do aluno atualizados com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "O RGM informado é inválido.", "Erro", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, "Erro ao atualizar dados:\n" + e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void consultarAlunoPorRgm(String rgmText) {
+		try {
+			String rgmStr = rgmText.trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Digite o RGM para fazer a busca.", "Campo Vazio", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			int rgm = Integer.parseInt(rgmStr);
+
+			AlunoDAO dao = new AlunoDAO();
+			aluno = dao.consultarAluno(rgm);
+
+			if (aluno == null) {
+				JOptionPane.showMessageDialog(this, "Aluno com o RGM " + rgm + " não foi encontrado.", "Não Encontrado", JOptionPane.INFORMATION_MESSAGE);
+				return;
+			}
+
+			txtNome.setText(aluno.getNome());
+			txtCpf.setValue(aluno.getCpf());
+			txtEnd.setText(aluno.getEndereco());
+			txtDtaNascimento.setValue(aluno.getDtaNascimento());
+			
+			String ufSelect = aluno.getUF();
+			for (int i = 0; i < comboBoxUf.getItemCount(); i++) {
+				if (comboBoxUf.getItemAt(i).equals(ufSelect)) {
+					comboBoxUf.setSelectedIndex(i);
+					break;
+				}
+			}
+
+			txtMunicipio.setText(aluno.getMunicipio());
+			txtCelular.setValue(aluno.getCelular());
+			txtEmail.setText(aluno.getEmail());
+
+			// Sincroniza também as informações na aba Curso
+			dao = new AlunoDAO();
+			curso = dao.consultarCurso(rgm);
+
+			if (curso != null) {
+				String cursoSelect = curso.getCurso();
+				for (int i = 0; i < comboBoxCurso.getItemCount(); i++) {
+					if (comboBoxCurso.getItemAt(i).equals(cursoSelect)) {
+						comboBoxCurso.setSelectedIndex(i);
+						break;
+					}
+				}
+
+				String campusSelect = curso.getCampus();
+				for (int i = 0; i < comboBoxCampus.getItemCount(); i++) {
+					if (comboBoxCampus.getItemAt(i).equals(campusSelect)) {
+						comboBoxCampus.setSelectedIndex(i);
+						break;
+					}
+				}
+
+				if ("Matutino".equals(curso.getPeriodo())) {
+					grupoPeriodo.setSelected(rdbtnMatutino.getModel(), true);
+				} else if ("Vespertino".equals(curso.getPeriodo())) {
+					grupoPeriodo.setSelected(rdbtnVespertino.getModel(), true);
+				} else if ("Noturno".equals(curso.getPeriodo())) {
+					grupoPeriodo.setSelected(rdbtnNoturno.getModel(), true);
+				} else {
+					grupoPeriodo.clearSelection();
+				}
+			}
+			
+			// Se o RGM de Notas e Faltas estiver vazio, preenche ele automaticamente
+			if (txtNFRgm.getText().trim().isEmpty()) {
+				txtNFRgm.setText(rgmStr);
+				consultarNotasPorRgm(rgmStr);
+			}
+
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "O RGM deve ser composto apenas por números.", "Erro de Digitação", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, "Erro ao realizar consulta:\n" + e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void excluirAlunoPorRgm(String rgmText) {
+		try {
+			String rgmStr = rgmText.trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Digite o RGM do aluno a ser deletado.", "Campo Vazio", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			int rgm = Integer.parseInt(rgmStr);
+
+			int confirm = JOptionPane.showConfirmDialog(this, 
+				"Tem certeza de que deseja EXCLUIR o aluno de RGM " + rgm + " e todos os seus registros acadêmicos?",
+				"Confirmação de Exclusão", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			
+			if (confirm == JOptionPane.YES_OPTION) {
+				AlunoDAO dao = new AlunoDAO();
+				dao.excluir(rgm);
+				JOptionPane.showMessageDialog(this, "Aluno excluído com sucesso!", "Concluído", JOptionPane.INFORMATION_MESSAGE);
+				limparFormularios();
+			}
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "RGM inválido.", "Erro", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, "Erro ao excluir aluno:\n" + e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void salvarNotasEFaltas() {
+		try {
+			String rgmStr = txtNFRgm.getText().trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Digite o RGM na aba Notas e Faltas.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			int rgm = Integer.parseInt(rgmStr);
+
+			Notas notas = new Notas();
+			notas.setRgm(rgm);
+			notas.setSemestre(comboBoxSemestre.getSelectedItem().toString());
+			notas.setDisciplina(comboBoxDisciplina.getSelectedItem().toString());
+			notas.setFalta(Integer.parseInt(txtNFFalta.getText().trim()));
+			notas.setNota(comboBoxNota.getSelectedItem().toString());
+
+			NotasDAO dao = new NotasDAO();
+			dao.salvarNotas(notas);
+			JOptionPane.showMessageDialog(this, "Notas e Faltas cadastradas com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "Certifique-se de que o RGM e as Faltas sejam números válidos.", "Entrada Inválida", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void alterarNotasEFaltas() {
+		try {
+			String rgmStr = txtNFRgm.getText().trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Digite o RGM correspondente.", "Campo Requerido", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			int rgm = Integer.parseInt(rgmStr);
+
+			Notas notas = new Notas();
+			notas.setRgm(rgm);
+			notas.setSemestre(comboBoxSemestre.getSelectedItem().toString());
+			notas.setDisciplina(comboBoxDisciplina.getSelectedItem().toString());
+			notas.setFalta(Integer.parseInt(txtNFFalta.getText().trim()));
+			notas.setNota(comboBoxNota.getSelectedItem().toString());
+			notas.setRgmSemestreDisciplina(notas.getRgm() + notas.getSemestre() + notas.getDisciplina());
+
+			NotasDAO dao = new NotasDAO();
+			dao.atualizar(notas);
+			JOptionPane.showMessageDialog(this, "Registro de Notas atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "Entradas de formato numérico inválidas.", "Erro", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void excluirNotasEFaltas() {
+		try {
+			String rgmStr = txtNFRgm.getText().trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "RGM está vazio.", "Aviso", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			
+			String semestre = comboBoxSemestre.getSelectedItem().toString();
+			String disciplina = comboBoxDisciplina.getSelectedItem().toString();
+
+			if ("--".equals(semestre) || "--".equals(disciplina)) {
+				JOptionPane.showMessageDialog(this, "Selecione o Semestre e a Disciplina que deseja excluir.", "Selecione os Filtros", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+
+			String compositeKey = rgmStr.trim() + semestre + disciplina;
+
+			int confirm = JOptionPane.showConfirmDialog(this, 
+				"Deseja excluir a nota do RGM " + rgmStr + " em " + disciplina + " (" + semestre + ")?",
+				"Confirmar Exclusão de Nota", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+			if (confirm == JOptionPane.YES_OPTION) {
+				NotasDAO dao = new NotasDAO();
+				dao.excluir(compositeKey);
+				JOptionPane.showMessageDialog(this, "Registro excluído com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+			}
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, "Erro ao excluir registro:\n" + e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void consultarNotasPorRgm(String rgmText) {
+		try {
+			String rgmStr = rgmText.trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Preencha o RGM para consultar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			int rgm = Integer.parseInt(rgmStr);
+
+			NotasDAO dao = new NotasDAO();
+			aluno = dao.consultarAluno(rgm);
+
+			if (aluno == null) {
+				JOptionPane.showMessageDialog(this, "Estudante com o RGM informado não encontrado.", "Alerta", JOptionPane.INFORMATION_MESSAGE);
+				return;
+			}
+
+			txtNFNome.setText(aluno.getNome());
+
+			dao = new NotasDAO();
+			curso = dao.consultarCurso(rgm);
+			
+			if (curso != null) {
+				txtNFCurso.setText(curso.getCurso());
+				String cursoSelect = curso.getCurso();
+
+				// Configura o combobox de disciplinas de acordo com o curso retornado
+				if ("Ciencia da Computação".equalsIgnoreCase(cursoSelect)) {
+					comboBoxDisciplina.setModel(new DefaultComboBoxModel(
+							new String[] { "--", "Estrutura de dados", "Matematica Discreta" }));
+				} else if ("Medicina".equalsIgnoreCase(cursoSelect)) {
+					comboBoxDisciplina.setModel(
+							new DefaultComboBoxModel(new String[] { "--", "Radiologia", "Fisiologia" }));
+				} else if ("Direito".equalsIgnoreCase(cursoSelect)) {
+					comboBoxDisciplina.setModel(new DefaultComboBoxModel(
+							new String[] { "--", "Direito Civil", "Direito Trabalhista" }));
+				} else {
+					comboBoxDisciplina.setModel(new DefaultComboBoxModel(new String[] { "--" }));
+				}
+			} else {
+				txtNFCurso.setText("Sem Curso Vinculado");
+				comboBoxDisciplina.setModel(new DefaultComboBoxModel(new String[] { "--" }));
+			}
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "O RGM informado é incorreto.", "Erro de Formato", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, "Erro ao consultar notas:\n" + e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void gerarBoletimFormatado() {
+		try {
+			String rgmStr = txtBRgm.getText().trim();
+			if (rgmStr.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Digite o RGM do aluno para gerar o Boletim.", "Aviso", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			int rgm = Integer.parseInt(rgmStr);
+
+			NotasDAO dao = new NotasDAO();
+			aluno = dao.consultarAluno(rgm);
+			if (aluno == null) {
+				JOptionPane.showMessageDialog(this, "Nenhum aluno localizado com o RGM informado.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
+				return;
+			}
+
+			dao = new NotasDAO();
+			curso = dao.consultarCurso(rgm);
+			String nomeCurso = (curso != null) ? curso.getCurso() : "Sem curso";
+
+			dao = new NotasDAO();
+			List<Notas> notasList = dao.boletim(rgm);
+
+			// Geração da Tabela em ASCII Premium
+			StringBuilder sb = new StringBuilder();
+			sb.append("=========================================================================\n");
+			sb.append("                        BOLETIM DE DESEMPENHO                            \n");
+			sb.append("=========================================================================\n");
+			sb.append(String.format(" RGM:   %-15d | Nome:  %s\n", rgm, aluno.getNome()));
+			sb.append(String.format(" Curso: %-15s\n", nomeCurso));
+			sb.append("-------------------------------------------------------------------------\n");
+			sb.append(String.format(" %-10s | %-32s | %-8s | %-6s \n", "Semestre", "Disciplina", "Faltas", "Nota"));
+			sb.append("-------------------------------------------------------------------------\n");
+
+			if (notasList == null || notasList.isEmpty()) {
+				sb.append("                 Nenhuma nota lançada para este aluno.                   \n");
+			} else {
+				for (Notas n : notasList) {
+					sb.append(String.format(" %-10s | %-32s | %-8d | %-6s \n", 
+							n.getSemestre(), n.getDisciplina(), n.getFalta(), n.getNota()));
+				}
+			}
+			sb.append("=========================================================================\n");
+			sb.append(" Status: Completo 🆗\n");
+
+			txtBoletim.setText(sb.toString());
+			JOptionPane.showMessageDialog(this, "Boletim gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(this, "O RGM informado é incorreto.", "Erro de Digitação", JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e1) {
+			JOptionPane.showMessageDialog(this, "Erro ao gerar o boletim:\n" + e1.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void exibirInstrucoesSobre() {
+		String[] instrucoes = { 
+			"Passo 1:\nCadastre os dados pessoais do aluno na aba 'Dados Pessoais' e salve.",
+			"Passo 2:\nInsira o RGM do aluno na aba 'Curso', selecione o curso, campus e período e salve.",
+			"Passo 3:\nNa aba 'Notas e Faltas', informe o RGM do aluno e clique no botão de lupa (Consultar).\nIsso carregará o nome do aluno, curso e as disciplinas corretas automaticamente.",
+			"Passo 4:\nSelecione a disciplina, o semestre, a nota e o número de faltas do aluno e clique em Salvar (Disquete).",
+			"Passo 5:\nNa aba 'Boletim', digite o RGM do aluno e clique em 'Consultar' para ver o boletim completo em formato de tabela elegante!" 
+		};
+		int i = 0;
+		int resposta = JOptionPane.YES_OPTION;
+		while (i < instrucoes.length && resposta == JOptionPane.YES_OPTION) {
+			resposta = JOptionPane.showOptionDialog(this, instrucoes[i], 
+					"Guia de Uso Acadêmico (" + (i + 1) + "/5)",
+					JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
+					new String[] { "Próximo", "Sair do Guia" }, "Próximo");
+			i++;
+		}
+	}
+
+	private void limparFormularios() {
+		txtRgm.setText("");
+		txtNome.setText("");
+		txtDtaNascimento.setText("");
+		txtCpf.setText("");
+		txtEmail.setText("");
+		txtEnd.setText("");
+		txtMunicipio.setText("");
+		comboBoxUf.setSelectedIndex(0);
+		txtCelular.setText("");
+		
+		comboBoxCurso.setSelectedIndex(0);
+		comboBoxCampus.setSelectedIndex(0);
+		grupoPeriodo.clearSelection();
+
+		txtNFRgm.setText("");
+		txtNFNome.setText("");
+		txtNFCurso.setText("");
+		comboBoxDisciplina.setModel(new DefaultComboBoxModel(new String[] { "--" }));
+		comboBoxSemestre.setSelectedIndex(0);
+		comboBoxNota.setSelectedIndex(0);
+		txtNFFalta.setText("");
+		
+		txtBRgm.setText("");
+		txtBoletim.setText("");
 	}
 }

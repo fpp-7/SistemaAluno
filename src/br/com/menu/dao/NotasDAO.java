@@ -5,14 +5,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.com.menu.model.Aluno;
 import br.com.menu.model.Curso;
 import br.com.menu.model.Notas;
 import br.com.menu.util.ConnectionFactory;
-
-
 
 public class NotasDAO {
 	//Abre conexão
@@ -23,8 +23,33 @@ public class NotasDAO {
 	private ResultSet rs;  
 	private Aluno alunoConsulta;
 	private Curso cursoConsulta;
+
+	// Coleções estáticas para o Modo Demo (Simulação em Memória)
+	public static final Map<String, Notas> mockNotas = new HashMap<>();
+
+	static {
+		// Pré-carrega as notas de demonstração idênticas às do banco original SQL
+		addMockNota(123, "1.2022", "Direito Civil", 3, "3,0");
+		addMockNota(123, "1.2022", "Direito Trabalhista", 7, "3,5");
+		addMockNota(123, "1.2023", "Direito Civil", 3, "8,0");
+		addMockNota(123, "2.2022", "Direito Civil", 3, "3,0");
+		addMockNota(123, "2.2023", "Direito Civil", 3, "7,5");
+	}
+
+	private static void addMockNota(int rgm, String semestre, String disciplina, int falta, String nota) {
+		Notas n = new Notas(rgm, semestre, disciplina, falta, nota);
+		String key = rgm + semestre + disciplina;
+		n.setRgmSemestreDisciplina(key);
+		mockNotas.put(key, n);
+	}
+
+	// Método auxiliar para remoção cascata quando excluir aluno
+	public static void excluirPorRgm(int rgm) {
+		mockNotas.values().removeIf(n -> n.getRgm() == rgm);
+	}
+
 	private String unescape(String value) {
-	    return value.replace("''", "'");
+		return value == null ? "" : value.replace("''", "'");
 	}
 	
 	//throws Exeption para dizer ao programa que não se trata erros nessa classe
@@ -34,13 +59,23 @@ public class NotasDAO {
 			this.conn = ConnectionFactory.getConnection();
 			
 		} catch (Exception e) {
-			//Caso o programa reporte algum erro na função anterior, manda a mensagem de erro
-			throw new Exception("erro, verifique a conexão com o banco de dados \n");  
+			if (!ConnectionFactory.demoMode) {
+				//Caso o programa reporte algum erro na função anterior, manda a mensagem de erro
+				throw new Exception("erro, verifique a conexão com o banco de dados \n");  
+			}
 		}
 	}
 	
 	//Método utilizado para realizar a consulta do nome do aluno
 	public Aluno consultarAluno(int rgm) throws Exception {
+		if (ConnectionFactory.demoMode) {
+			Aluno a = AlunoDAO.mockAlunos.get(rgm);
+			if (a == null) {
+				throw new Exception("Aluno nao encontrado");
+			}
+			return new Aluno(rgm, a.getNome());
+		}
+
 		try {
 			//Query utilizada para fazer a consulta do nome do aluno
 			String SQL = ("SELECT nome FROM tbaluno WHERE rgm=?");
@@ -59,12 +94,22 @@ public class NotasDAO {
 		}catch(Exception e) {
 			throw new Exception("Erro ao consultar");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 	
 	//Método utilizado para realizar a consulta do curso
 	public Curso consultarCurso(int rgm) throws Exception {
+		if (ConnectionFactory.demoMode) {
+			Curso c = AlunoDAO.mockCursos.get(rgm);
+			if (c == null) {
+				throw new Exception("Curso nao encontrado");
+			}
+			return new Curso(rgm, c.getCurso());
+		}
+
 		try {
 			//Query utilizada para fazer a consulta do nome do aluno
 			String SQL1 = ("SELECT curso FROM tbcurso WHERE rgm=?");
@@ -82,7 +127,9 @@ public class NotasDAO {
 		} catch(Exception e ) {
 			throw new Exception("Erro ao consultar");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 	
@@ -91,6 +138,12 @@ public class NotasDAO {
 		//caso o valor do item disciplina seja enviado como nulo, identifica como erro
 		if (disciplina == null)
 			throw new Exception("O valor passado nao pode ser nulo");
+
+		if (ConnectionFactory.demoMode) {
+			mockNotas.remove(disciplina);
+			return;
+		}
+
 		try {
 			//Query para excluir a nota correpondente ao Rgm, Semestre e a Disciplina
 			String SQL = "DELETE FROM tbnota"
@@ -102,12 +155,19 @@ public class NotasDAO {
 			} catch (SQLException sqle) {
 			throw new Exception("Erro ao excluir dados ");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 	
 	// método de atualizar
 	public void atualizar(Notas notas) throws Exception {  
+		if (ConnectionFactory.demoMode) {
+			mockNotas.put(notas.getRgmSemestreDisciplina(), notas);
+			return;
+		}
+
 		try {
 			//Query para update de dados no bd 
 			String SQL = "UPDATE "				
@@ -129,13 +189,25 @@ public class NotasDAO {
 		} catch (SQLException sqle) {
 			throw new Exception("Erro ao alterar dados");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 	
 	
 	//Lista com os itens do objeto Notas
 	public List <Notas> boletim(int rgm) throws Exception {	 
+		if (ConnectionFactory.demoMode) {
+			List <Notas> result = new ArrayList<>();
+			for (Notas n : mockNotas.values()) {
+				if (n.getRgm() == rgm) {
+					result.add(n);
+				}
+			}
+			return result;
+		}
+
 		List <Notas> boletim = new ArrayList<>();
 		try {	
 			//Query para puxar os dados com o respectivo RGM informado
@@ -161,15 +233,31 @@ public class NotasDAO {
 		} catch (Exception e1) {
 			throw new Exception("Erro ao consultar dados");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 		return boletim;
 	}
 	
 	public void salvarNotas(Notas notas) throws Exception {
+		if (ConnectionFactory.demoMode) {
+			if (notas.getDisciplina().equals("--") || notas.getSemestre().equals("--") || notas.getRgm() == 0 || notas.getNota().equals("--"))
+				throw new Exception("Verifique os valores inseridos");
+			
+			String key = notas.getRgm() + notas.getSemestre() + notas.getDisciplina();
+			notas.setRgmSemestreDisciplina(key);
+			
+			if (mockNotas.containsKey(key)) {
+				throw new SQLException("Erro ao inserir dados, verifique se este aluno já teve a sua nota inserida");
+			}
+			mockNotas.put(key, notas);
+			return;
+		}
+
 		try {		
 			//Caso algum dos parametros seja enviado como nulo, o programa identifica como erro.
-			if (notas.getDisciplina() == "--" || notas.getSemestre() == "--" || notas.getRgm() == 0 || notas.getNota() == "--")
+			if (notas.getDisciplina().equals("--") || notas.getSemestre().equals("--") || notas.getRgm() == 0 || notas.getNota().equals("--"))
 				throw new Exception("Verifique os valores inseridos");
 			//Query para salvar as notas
 			String SQL = "INSERT INTO tbnota "
@@ -191,7 +279,9 @@ public class NotasDAO {
 			 //Mostra o erro identificado pelo bd
 			throw new Exception("Erro ao inserir dados, verifique se este aluno já teve a sua nota inserida "); 
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 }

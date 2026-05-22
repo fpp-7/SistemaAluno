@@ -6,8 +6,14 @@ import java.sql.Statement;
 
 public class ConnectionFactory {
 	
+	public static boolean demoMode = false;
+	private static boolean dialogShown = false;
+	
 	public static Connection getConnection() throws Exception {
-		//Metódo GetConnection - Não irá tratar erros.
+		// Se já estiver no Modo Demo, não tenta conectar
+		if (demoMode) {
+			return null;
+		}
 		try {
 			//Indica o DB MySQL e aponta para o Driver.
 			Class.forName("com.mysql.jdbc.Driver");
@@ -19,6 +25,25 @@ public class ConnectionFactory {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+			if (!dialogShown) {
+				dialogShown = true;
+				int option = javax.swing.JOptionPane.showConfirmDialog(
+					null,
+					"Não foi possível conectar ao banco de dados MySQL local (porta 3306).\n" +
+					"Deseja iniciar o aplicativo no MODO DE DEMONSTRAÇÃO (em memória)?\n" +
+					"Todos os recursos de cadastros, notas e boletim funcionarão perfeitamente!",
+					"Aviso de Banco de Dados Inacessível",
+					javax.swing.JOptionPane.YES_NO_OPTION,
+					javax.swing.JOptionPane.WARNING_MESSAGE
+				);
+				if (option == javax.swing.JOptionPane.YES_OPTION) {
+					demoMode = true;
+					return null;
+				}
+			}
+			if (demoMode) {
+				return null;
+			}
 			throw new Exception("Erro na conexão");  //Apresenta o Erro caso haja algum problema na conexão do banco de dados
 		}
 	}

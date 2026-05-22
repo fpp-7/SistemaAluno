@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 
@@ -20,8 +22,21 @@ public class AlunoDAO {
 	private Aluno alunoConsulta;
 	private Curso cursoConsulta;
 
+	// Coleções estáticas para o Modo Demo (Simulação em Memória)
+	public static final Map<Integer, Aluno> mockAlunos = new HashMap<>();
+	public static final Map<Integer, Curso> mockCursos = new HashMap<>();
+
+	static {
+		// Pré-carrega um aluno de demonstração igual ao contido no script SQL original
+		Aluno demoAluno = new Aluno(123, "Fp", "494.991.919-84", "ewfewfwe", "AP", "efwwfwe", "(15)919949849", "04/01/2000", "fe@2322");
+		Curso demoCurso = new Curso(123, "Direito", "Unicid - Carrão", "Noturno");
+		
+		mockAlunos.put(123, demoAluno);
+		mockCursos.put(123, demoCurso);
+	}
+
 	private String unescape(String value) {
-		return value.replace("''", "'");
+		return value == null ? "" : value.replace("''", "'");
 	}
 
 	// throws Exeption para dizer ao programa que não se trata erros nessa classe
@@ -31,10 +46,11 @@ public class AlunoDAO {
 			this.conn = ConnectionFactory.getConnection();
 		} catch (Exception e1) {
 		    e1.printStackTrace();
-		    String errorMessage = "Erro na inserção de dados:\n" + e1.getMessage();
-		    JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
+		    if (!ConnectionFactory.demoMode) {
+		    	String errorMessage = "Erro na inserção de dados:\n" + e1.getMessage();
+		    	JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
+		    }
 		}
-
 	}
 
 	// método de salvar dados do aluno
@@ -42,10 +58,15 @@ public class AlunoDAO {
 		// Verifica se os dados de alunos estão vazios.
 		if (aluno.getRgm() == 0)
 			throw new Exception("O valor passado nao pode ser nulo");
+
+		if (ConnectionFactory.demoMode) {
+			mockAlunos.put(aluno.getRgm(), aluno);
+			mockCursos.put(curso.getRgm(), curso);
+			return;
+		}
+
 		try {
 			// Código para inserção de valores na tabela TBALUNO do bd
-			// Cada interrogação corresponde a uma coluna da tabela
-			// sendo ordenada de acordo com a sua posição
 			String SQL = "INSERT INTO " 
 						+ "tbaluno (rgm, " 
 						+ "nome, cpf, endereco, uf, " 
@@ -88,7 +109,9 @@ public class AlunoDAO {
 			JOptionPane.showMessageDialog(null, errorMessage, "Erro", JOptionPane.ERROR_MESSAGE);
 			
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 
@@ -96,6 +119,13 @@ public class AlunoDAO {
 	public void atualizar(Aluno aluno, Curso curso) throws Exception {
 		if (aluno == null || curso == null)
 			throw new Exception("O valor passado nao pode ser nulo");
+
+		if (ConnectionFactory.demoMode) {
+			mockAlunos.put(aluno.getRgm(), aluno);
+			mockCursos.put(curso.getRgm(), curso);
+			return;
+		}
+
 		try {
 			// Código para update de dados no bd
 			String SQL = "UPDATE " 
@@ -136,24 +166,30 @@ public class AlunoDAO {
 		} catch (SQLException sqle) {
 			throw new Exception("Erro ao alterar dados");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 
 	// Método para consultar aluno, usando o parametro rgm inserido pelo usuario
 	public Aluno consultarAluno(int rgm) throws Exception {
+		if (ConnectionFactory.demoMode) {
+			Aluno a = mockAlunos.get(rgm);
+			if (a == null) {
+				throw new Exception("Aluno nao encontrado");
+			}
+			return a;
+		}
+
 		try {
 			// Query para realizar a consulta da linha inteira que contem o parametro
-			// inserido
 			String SQL = ("SELECT * FROM tbaluno WHERE rgm=?");
 			ps = conn.prepareStatement(SQL);
 			ps.setInt(1, rgm);
 			rs = ps.executeQuery();
 
-			// Enquanto houver um valor na próxima coluna o programa armazena nas seguintes
-			// variaveis
 			if (rs.next()) {
-
 				String nome = unescape(rs.getString("nome"));
 				String cpf = rs.getString("cpf");
 				String endereco = unescape(rs.getString("endereco"));
@@ -165,49 +201,63 @@ public class AlunoDAO {
 
 				alunoConsulta = new Aluno(rgm, nome, cpf, endereco, uf, municipio, celular, dtaNascimento, email);
 			}
-			// Retorna o construtor com os parametros populado
 			return alunoConsulta;
 		} catch (Exception e) {
 			throw new Exception("Erro ao consultar");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 
 	// Método para consultar aluno, usando o parametro rgm inserido pelo usuario
 	public Curso consultarCurso(int rgm) throws Exception {
+		if (ConnectionFactory.demoMode) {
+			Curso c = mockCursos.get(rgm);
+			if (c == null) {
+				throw new Exception("Curso nao encontrado");
+			}
+			return c;
+		}
+
 		try {
 			// Query para realizar a consulta da linha inteira que contem o parametro
-			// inserido
 			String Query = ("SELECT * FROM tbcurso WHERE rgm=?");
 			ps = conn.prepareStatement(Query);
 			ps.setInt(1, rgm);
 			rs = ps.executeQuery();
 
-			// Enquanto houver um valor na próxima coluna o programa armazena nas seguintes
-			// variaveis
 			if (rs.next()) {
 				String curso = unescape(rs.getString("curso"));
 				String campus = unescape(rs.getString("campus"));
 				String periodo = rs.getString("periodo");
 				cursoConsulta = new Curso(rgm, curso, campus, periodo);
 			}
-			// Retorna o construtor com os parametros populado
 			return cursoConsulta;
 		} catch (Exception e) {
 			throw new Exception("Erro ao consultar");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 
 	// método exclui os dados de todas as tabelas que contenham o mesmo rgm
-	// informado
 	public void excluir(int rgm) throws Exception {
 		if (rgm == 0)
 			throw new Exception("O valor passado nao pode ser nulo");
+
+		if (ConnectionFactory.demoMode) {
+			mockAlunos.remove(rgm);
+			mockCursos.remove(rgm);
+			// Remove as notas associadas a esse RGM na classe NotasDAO
+			NotasDAO.excluirPorRgm(rgm);
+			return;
+		}
+
 		try {
-			// Query para excluir da tabela usando como parametro o rgm inserido
 			String SQL = "DELETE FROM tbaluno" + " WHERE rgm=?";
 			ps = conn.prepareStatement(SQL);
 			ps.setInt(1, rgm);
@@ -225,7 +275,9 @@ public class AlunoDAO {
 		} catch (SQLException sqle) {
 			throw new Exception("Erro ao excluir dados ");
 		} finally {
-			ConnectionFactory.closeConnection(conn, ps);
+			if (conn != null) {
+				ConnectionFactory.closeConnection(conn, ps);
+			}
 		}
 	}
 
